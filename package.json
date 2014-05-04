@@ -4,7 +4,10 @@
   "main": "./html/index.html",
   "window": {
     "toolbar": true,
-    "min_width": 600,
-    "min_height": 350
+    "width": 1000,
+    "height": 600
+  },
+  "webkit": {
+    "plugin": true
   }
 }

@@ -1,0 +1,51 @@
+* {
+	font-family: sans-serif;
+}
+
+body {
+	background-color: #ddd;
+	margin: 0px;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#artbox {
+	background-color: #fff;
+	width: 960px;
+	height: 540px;
+	border-radius: 5px;
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	
+	display: flex;
+	flex-flow: column;
+
+	-webkit-user-select: none;
+}
+
+#artcanvas {
+	width: 100%;
+	height: 100%;
+}
+
+.artbar {
+	background-color: #f6f6f6;
+	display: box;
+	padding: 10px;
+	height: 30px;
+	line-height: 30px;
+}
+#artbartop {
+	border-bottom: 1px solid #ddd;
+}
+#artbarbottom {
+	border-top: 1px solid #ddd;
+}
+
+.optfield {
+	padding:8px;
+	border-radius: 3px;
+	background-color: rgba(0, 0, 0, 0.1);
+}
