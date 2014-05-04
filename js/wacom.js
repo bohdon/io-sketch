@@ -11,9 +11,10 @@ $(document).ready(function() {
 
 wacom = {
 	get plugin() { return document.embeds['wtPlugin']; },
-	get loaded() { return (this.plugin && this.plugin.version != undefined); },
-
 	get version() { return this.plugin.penAPI.version; },
+	get loaded() { return (this.plugin && this.plugin.version != undefined); },
+	get active() { return this.loaded && this.pointerType != 0; },
+
 	get isWacom() { return this.plugin.penAPI.isWacom; },
 	get isEraser() { return this.plugin.penAPI.isEraser; },
 	get pointerType() { return this.plugin.penAPI.pointerType; },
