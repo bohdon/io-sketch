@@ -13,8 +13,10 @@ body {
 
 #artbox {
 	background-color: #fff;
-	width: 960px;
+	width: 400px;
 	height: 540px;
+	min-width: 400px;
+	min-height: 540px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
 	overflow: hidden;
@@ -31,9 +33,9 @@ body {
 }
 
 .artbar {
-	background-color: #f6f6f6;
+	background-color: #f2f2f2;
 	display: box;
-	padding: 10px;
+	padding: 6px;
 	height: 30px;
 	line-height: 30px;
 }
@@ -44,8 +46,39 @@ body {
 	border-top: 1px solid #ddd;
 }
 
-.optfield {
-	padding:8px;
+#brushSize {
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+	background-color: white;
 	border-radius: 3px;
-	background-color: rgba(0, 0, 0, 0.1);
+	float: left;
+	text-align: center;
+	width: 30px;
 }
+
+#brushColors {
+	height: 30px;
+	float: right;
+}
+
+.colorSwatch {
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+	border-radius: 3px;
+	width: 22px;
+	height: 22px;
+	margin: 4px;
+	display: inline-block;
+	transition: width 20ms, height 20ms, margin 20ms;
+}
+.colorSwatch:hover {
+	width: 30px;
+	height: 30px;
+	margin: 0px;
+}
+
+.colorSwatch.active {
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
+	width: 30px;
+	height: 30px;
+	margin: 0px;
+}
+

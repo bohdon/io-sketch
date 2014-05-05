@@ -1,6 +1,11 @@
 
+(function() {
+
+
+
 $(document).ready(function() {
 
+	var colors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#48e', '#24a', '#728'];
 	var canvas = document.getElementById('artcanvas');
 	paper.setup(canvas);
 
@@ -10,12 +15,36 @@ $(document).ready(function() {
 	paintBrush.eraseTool = eraseBrush.tool;
 	eraseBrush.paintTool = paintBrush.tool;
 
-	function brush_onMouseDown(event) {
-		if (wacom.isEraser) {
-			eraseTool.activate();
-		} else {
-			paintTool.activate();
+	// setup brush size display
+	paintBrush.addEventListener('brushSize', function() {
+		var span = document.getElementById('brushSize');
+		span.innerHTML = paintBrush.brushSize;
+	});
+	// setup color swatches
+	var brushColorsDiv = document.getElementById('brushColors');
+	for (var i = 0; i < colors.length; i++) {
+		var swatch = document.createElement('div');
+		swatch.style.color = colors[i];
+		swatch.style.backgroundColor = colorWithAlpha(colors[i], 0.5);
+		swatch.className = 'colorSwatch';
+		swatch.addEventListener('click', setBrushColor);
+		brushColorsDiv.appendChild(swatch);
+		if (i == 0) {
+			setBrushColor({target:swatch});
 		}
+	};
+	paintBrush.fireChange();
+
+	function setBrushColor(e) {
+		var swatch = e.target;
+		var actives = document.getElementsByClassName('colorSwatch active');
+		for (var i = 0; i < actives.length; i++) {
+			actives[i].style.backgroundColor = colorWithAlpha(actives[i].style.color, 0.5);
+			actives[i].className = 'colorSwatch';
+		};
+		swatch.style.backgroundColor = swatch.style.color;
+		swatch.className += ' active';
+		paintBrush.brushColor = swatch.style.color;
 	}
 
 });
@@ -26,11 +55,18 @@ function lerp(a, b, t){
 	return a + (b - a) * t;
 }
 
+function colorWithAlpha(color, alpha) {
+	var c = tinycolor(color);
+	c.setAlpha(alpha);
+	return c;
+}
+
 
 
 /*
  * Pressure sentsitive Paint Brush used for drawing basic paths
  */
+
 
 function PaintBrush() {
 	this.brushColor = 'black';
@@ -38,12 +74,13 @@ function PaintBrush() {
 	this.brushMinSizeScale = 0.1;
 	this.pressureSmoothing = 0.5;
 
-	this.changeCallbacks = [];
+	this.events = {};
 	this.smoothPressure = 0;
 	this.path;
 
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
+	this.tool.minDistance = 2;
 	this.tool.onMouseDown = this.onMouseDown.bind(this);
 	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 	this.tool.onMouseUp = this.onMouseUp.bind(this);
@@ -52,18 +89,24 @@ function PaintBrush() {
 }
 
 
-PaintBrush.prototype.addChangeListener = function(callback) {
-	changeCallbacks.push(callback);
+PaintBrush.prototype.addEventListener = function(event, callback) {
+	if (!this.events[event]) {
+		this.events[event] = [];
+	}
+	this.events[event].push(callback);
 };
 
-PaintBrush.prototype.removeChangeListener = function(callback) {
-
-};
-
-PaintBrush.prototype.fireChange = function() {
-	for (var i = 0; i < changeCallbacks.length; i++) {
-		changeCallbacks[i]();
-	};
+PaintBrush.prototype.fireChange = function(event) {
+	if (!event) {
+		for (var key in this.events) {
+			this.fireChange(key);
+		}
+	} else if (this.events[event]) {
+		var these = this.events[event];
+		for (var i = 0; i < these.length; i++) {
+			these[i](this);
+		};
+	}
 };
 
 
@@ -85,6 +128,7 @@ Object.defineProperty(PaintBrush.prototype, "brushSize", {
 	},
 	set: function brushSize(size) {
 		this.brushMaxSize = size;
+		this.fireChange('brushSize')
 	}
 });
 
@@ -188,4 +232,11 @@ EraserBrush.prototype.onMouseUp = function(event) {
 
 EraserBrush.prototype.onKeyDown = function(event) {	
 };
+
+
+window.PaintBrush = PaintBrush;
+window.EraserBrush = EraserBrush;
+
+})();
+
 
