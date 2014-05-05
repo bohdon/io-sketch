@@ -100,24 +100,23 @@ body {
 }
 
 
-.layerTile {
-	color: rgba(0, 0, 0, .15);
-	background-color: rgba(255, 255, 255, 0.25);
-	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.05);
-	border-radius: 3px;
-	text-align: center;
-	line-height: 40px;
-	margin: 2px;
-	width: 40px;
-	height: 40px;
-}
-
-.layerTile:hover {
-	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.15);
-}
-
-.layerTile.active {
+.layerButton {
+	opacity: .25;
 	color: rgba(0, 0, 0, .6);
 	background-color: rgba(255, 255, 255, 1);
 	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+	border-radius: 3px;
+	text-align: center;
+	margin: 2px;
+	width: 40px;
+	height: 40px;
+	line-height: 40px;
+	transition: opacity 100ms;
 }
+.layerButton:hover {
+	opacity: 0.4;
+}
+.layerButton.active {
+	opacity: 1;
+}
+

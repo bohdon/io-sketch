@@ -2,8 +2,9 @@
 
 var iosketch = new function() {
 
-var defaultColors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
 var sketches = {};
+
+var defaultColors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
 
 function lerp(a, b, t){
 	return a + (b - a) * t;
@@ -21,13 +22,17 @@ function getInitials(name) {
 
 function IOSketch(id, elems, opts) {
 
+	// register sketch
 	this.id = id;
+	sketches[id] = this;
+
 	this.elems = elems ? elems : {};
 	this.opts = opts ? opts : {};
 	if (!this.opts.colors) {
 		this.opts.colors = defaultColors;
 	}
 	this.users = {};
+	this.requireActiveUser = true;
 
 	// setup paper scope
 	this.paper = new paper.PaperScope();
@@ -39,8 +44,6 @@ function IOSketch(id, elems, opts) {
 	this.setupBrushes();
 	this.updateColorSwatches();
 
-	// register sketch
-	sketches[id] = this;
 
 }
 
@@ -56,25 +59,28 @@ Object.defineProperty(IOSketch.prototype, "isActive", {
 	}
 });
 
-IOSketch.prototype.addUser = function(username, fullname, initials) {
+IOSketch.prototype.addUser = function(user) {
 	this.activate();
-	if (!this.users[username]) {
-		// create new layer;
-		var layer = getOrCreateLayer(username);
-		if (initials == undefined) {
-			initials = getInitials(fullname);
+	var layer = paper.project.activeLayer;
+	if (!this.users[user.username]) {
+		// create new user
+		var u = {};
+		for (var key in user) {
+			u[key] = user[key];
 		}
-		this.users[username] = {
-			layer: layer,
-			fullname: fullname,
-			initials: initials,
-			order: this.users.length,
-			activate: function() {
-				layer.activate();
-			}
+		// get some user info automatically
+		if (!u.initials && u.fullname) {
+			u.initials = getInitials(u.fullname);
 		}
+		// add layer functionality
+		u.layer = getOrCreateLayer(user.username);
+		u.activate = function() {
+			this.layer.activate();
+		}
+		this.users[u.username] = u;
 		this.updateLayerButtons();
 	}
+	layer.activate();
 
 	function getOrCreateLayer(name) {
 		var layer;
@@ -91,35 +97,109 @@ IOSketch.prototype.addUser = function(username, fullname, initials) {
 	}
 };
 
+
+Object.defineProperty(IOSketch.prototype, 'activeUser', {
+	get: function activeUser() {
+		return this._activeUser;
+	},
+	set: function activeUser(username) {
+		this._activeUser = username;
+		this.updateActiveLayer();
+	}
+});
+
+IOSketch.prototype.updateActiveLayer = function() {
+	if (this.users[this.activeUser]) {
+		this.users[this.activeUser].activate();
+	}
+}
+
+
 IOSketch.prototype.updateLayerButtons = function() {
 	// append any new layers
+	var children = this.elems.layers.children;
 	var child_ids = []
-	for (var i = 0; i < this.elems.layers.length; i++) {
-		child_ids.push(this.elems.layers[i].getAttribute('user'));
+	for (var i = 0; i < children.length; i++) {
+		child_ids.push(children[i].getAttribute('user'));
 	}
-	console.log(child_ids);
 	for (var username in this.users) {
+		var user = this.users[username];
 		if (child_ids.indexOf(username) < 0) {
 			// add new child element
-			var elem = document.createElement('div');
+			var elem = document.createElement(user.image ? 'img' : 'div');
 			elem.addEventListener('click', this.setLayerActive.bind(this));
-			elem.addEventListener('mouseover', this.selectLayer.bind(this));
-			elem.addEventListener('mouseout', this.deselectLayer.bind(this));
-			elem.innerHTML = this.users[username].initials;
+			elem.addEventListener('mouseover', this.setLayerHilited.bind(this, true));
+			elem.addEventListener('mouseout', this.setLayerHilited.bind(this, false));
+			if (user.image) {
+				elem.src = user.image;
+			} else {
+				elem.innerHTML = user.initials;
+			}
 			$(elem).attr({
 				user: username,
-			}).addClass("layerTile active");
+			}).addClass("layerButton active");
 			this.elems.layers.appendChild(elem);
 		}
 	}
-	// sort layer elements
+	// TODO: remove old layers
+
+	// TODO: sort layer elements
 }
+
+IOSketch.prototype.setLayerActive = function(e, activate) {
+	this.activate();
+	// TEMP: middle-mouse to switch layers
+	if (e.button != 0) {
+		var user = this.users[e.target.getAttribute('user')];
+		if (user) {
+			user.activate();
+		}
+		return;
+	}
+	// alt to solo the layer
+	if (e.altKey) {
+		var allLayers = document.getElementsByClassName("layerButton");
+		for (var i = 0; i < allLayers.length; i++) {
+			if ($(allLayers[i]).hasClass('active')) {
+				this.setLayerActive({target: allLayers[i]}, false);
+			}
+		};
+		activate = true;
+	}
+	// toggle or set active the target layer
+	var user = this.users[e.target.getAttribute('user')];
+	if (user) {
+		var layer = user.layer;
+		if (activate == undefined) {
+			activate = !$(e.target).hasClass('active');
+		}
+		if (activate) {
+			$(e.target).addClass('active');
+			layer.visible = true;
+		} else {
+			$(e.target).removeClass('active');
+			layer.visible = false;
+		}
+		paper.project.view.update();
+	}
+};
+
+IOSketch.prototype.setLayerHilited = function(hilite, e) {
+	this.activate();
+	var user = this.users[e.target.getAttribute('user')];
+	if (user) {
+		user.layer.selected = hilite;
+		paper.project.view.update();
+	}
+};
+
+
 
 
 
 IOSketch.prototype.setupBrushes = function() {
-	this.paintBrush = new PaintBrush();
-	this.eraseBrush = new EraserBrush();
+	this.paintBrush = new PaintBrush(this);
+	this.eraseBrush = new EraserBrush(this);
 
 	// setup relation to allow auto-tool switching
 	this.paintBrush.eraseTool = this.eraseBrush.tool;
@@ -133,6 +213,9 @@ IOSketch.prototype.setupBrushes = function() {
 
 
 IOSketch.prototype.updateColorSwatches = function() {
+	while(this.elems.colorSwatches.firstChild) {
+		this.elems.colorSwatches.removeChild(this.elems.colorSwatches.firstChild);
+	}
 	// setup color swatches
 	for (var i = 0; i < this.opts.colors.length; i++) {
 		var swatch = document.createElement('div');
@@ -161,57 +244,6 @@ IOSketch.prototype.setBrushColorCallback = function(e) {
 	this.paintBrush.brushColor = swatch.style.color;
 };
 
-IOSketch.prototype.setLayerActive = function(e, active) {
-	if (e.altKey) {
-		var allLayers = document.getElementsByClassName("layerTile");
-		for (var i = 0; i < allLayers.length; i++) {
-			if ($(allLayers[i]).hasClass('active')) {
-				this.setLayerActive({target: allLayers[i]}, false);
-			}
-		};
-		active = true;
-	}
-	var layer = e.target;
-	var index = layer.getAttribute('layerindex');
-	if (active == undefined) {
-		active = !$(layer).hasClass('active');
-	}
-	if (active) {
-		// activate
-		$(layer).addClass('active');
-		if (paper.project.layers[index]) {
-			paper.project.layers[index].visible = true;
-			// TEMP
-			paper.project.layers[index].activate();
-		}
-	} else {
-		// deactivate
-		$(layer).removeClass('active');
-		if (paper.project.layers[index]) {
-			paper.project.layers[index].visible = false;
-		}
-	}
-	paper.project.view.update();
-};
-
-IOSketch.prototype.selectLayer = function(e) {
-	var layer = e.target;
-	var index = layer.getAttribute('layerindex');
-	if (paper.project.layers[index]) {
-		paper.project.layers[index].selected = true;
-		paper.project.view.update();
-	}
-};
-
-IOSketch.prototype.deselectLayer = function(e) {
-	var layer = e.target;
-	var index = layer.getAttribute('layerindex');
-	if (paper.project.layers[index]) {
-		paper.project.layers[index].selected = false;
-		paper.project.view.update();
-	}
-};
-
 
 
 
@@ -221,7 +253,9 @@ IOSketch.prototype.deselectLayer = function(e) {
 //
 
 
-function PaintBrush() {
+function PaintBrush(sketch) {
+	this.sketch = sketch;
+
 	this.brushColor = 'black';
 	this.brushMaxSize = 4;
 	this.brushMinSizeScale = 0.1;
@@ -310,6 +344,10 @@ PaintBrush.prototype.onMouseDown = function(event) {
 };
 
 PaintBrush.prototype.onMouseDrag = function(event) {
+	if (this.sketch.requireActiveUser && !this.sketch.activeUser) {
+		return;
+	}
+
 	// update smooth pressure
 	if (wacom.loaded) {
 		this.smoothPressure = lerp(this.smoothPressure, wacom.pressure, this.pressureAccel);
@@ -364,7 +402,9 @@ PaintBrush.prototype.onKeyDown = function(event) {
 // Eraser Brush, handles hit testing paths and deleting them
 //
 
-function EraserBrush() {
+function EraserBrush(sketch) {
+	this.sketch = sketch;
+
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
 	this.tool.onMouseDown = this.onMouseDown.bind(this);
@@ -397,6 +437,7 @@ return {
 	PaintBrush: PaintBrush,
 	EraseBrush: EraserBrush,
 	sketches: sketches,
+	defaultColors: defaultColors,
 }
 
 

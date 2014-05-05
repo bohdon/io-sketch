@@ -10,7 +10,19 @@ $(document).ready(function() {
 	}
 
 	mysketch = new iosketch.IOSketch('mysketch', elems);
+	mysketch.activeUser = 'bsayre';
 
-	mysketch.addUser('bsayre', 'Bohdon Sayre');
+	mysketch.addUser({
+		username:'bsayre',
+		fullname:'Bohdon Sayre',
+	});
+	mysketch.addUser({
+		username: 'jcannon',
+		fullname: 'John Cannon',
+	});
+	mysketch.addUser({
+		username: 'bchapman',
+		fullname: 'Brennan Chapman',
+	});
 
 });
