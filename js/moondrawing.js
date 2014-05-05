@@ -5,9 +5,10 @@
 
 $(document).ready(function() {
 
-	var colors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#48e', '#24a', '#728'];
+	var colors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
 	var canvas = document.getElementById('artcanvas');
 	paper.setup(canvas);
+
 
 	var paintBrush = new PaintBrush();
 	var eraseBrush = new EraserBrush();
@@ -15,37 +16,115 @@ $(document).ready(function() {
 	paintBrush.eraseTool = eraseBrush.tool;
 	eraseBrush.paintTool = paintBrush.tool;
 
+
+
 	// setup brush size display
 	paintBrush.addEventListener('brushSize', function() {
 		var span = document.getElementById('brushSize');
-		span.innerHTML = paintBrush.brushSize;
+		span.innerHTML = paintBrush.brushMaxSize;
 	});
+
+
+
 	// setup color swatches
 	var brushColorsDiv = document.getElementById('brushColors');
 	for (var i = 0; i < colors.length; i++) {
 		var swatch = document.createElement('div');
 		swatch.style.color = colors[i];
 		swatch.style.backgroundColor = colorWithAlpha(colors[i], 0.5);
-		swatch.className = 'colorSwatch';
+		swatch.className = 'colorSwatch boxButton';
 		swatch.addEventListener('click', setBrushColor);
 		brushColorsDiv.appendChild(swatch);
 		if (i == 0) {
 			setBrushColor({target:swatch});
 		}
-	};
+	}
 	paintBrush.fireChange();
 
 	function setBrushColor(e) {
 		var swatch = e.target;
-		var actives = document.getElementsByClassName('colorSwatch active');
+		var actives = document.getElementsByClassName('colorSwatch boxButton active');
 		for (var i = 0; i < actives.length; i++) {
 			actives[i].style.backgroundColor = colorWithAlpha(actives[i].style.color, 0.5);
-			actives[i].className = 'colorSwatch';
+			$(actives[i]).removeClass('active');
 		};
+		$(swatch).addClass('active');
 		swatch.style.backgroundColor = swatch.style.color;
-		swatch.className += ' active';
 		paintBrush.brushColor = swatch.style.color;
 	}
+
+
+	// create layer for user
+	var users = ['BS', 'JC', 'JB', 'AV', 'TS'];
+	var layerGrp = document.getElementById('layerspanel');
+	for (var i = 0; i < users.length; i++) {
+		if (!paper.project.layers[i]) {
+			new paper.Layer();
+		}
+		var elem = document.createElement('div');
+		elem.addEventListener('click', setLayerActive);
+		elem.addEventListener('mouseover', selectLayer);
+		elem.addEventListener('mouseout', deselectLayer);
+		elem.innerHTML = users[i];
+		$(elem).attr({
+			layerindex: i,
+		}).addClass("layerTile active");
+		layerGrp.appendChild(elem);
+	}
+	paper.project.layers[0].activate();
+
+	function setLayerActive(e, active) {
+		if (e.altKey) {
+			var allLayers = document.getElementsByClassName("layerTile");
+			for (var i = 0; i < allLayers.length; i++) {
+				if ($(allLayers[i]).hasClass('active')) {
+					setLayerActive({target: allLayers[i]}, false);
+				}
+			};
+			active = true;
+		}
+		var layer = e.target;
+		var index = layer.getAttribute('layerindex');
+		if (active == undefined) {
+			active = !$(layer).hasClass('active');
+		}
+		if (active) {
+			// activate
+			$(layer).addClass('active');
+			if (paper.project.layers[index]) {
+				paper.project.layers[index].visible = true;
+				// TEMP
+				paper.project.layers[index].activate();
+			}
+		} else {
+			// deactivate
+			$(layer).removeClass('active');
+			if (paper.project.layers[index]) {
+				paper.project.layers[index].visible = false;
+			}
+		}
+		paper.project.view.update();
+	}
+
+	function selectLayer(e) {
+		var layer = e.target;
+		var index = layer.getAttribute('layerindex');
+		if (paper.project.layers[index]) {
+			paper.project.layers[index].selected = true;
+			paper.project.view.update();
+		}
+	}
+
+	function deselectLayer(e) {
+		var layer = e.target;
+		var index = layer.getAttribute('layerindex');
+		if (paper.project.layers[index]) {
+			paper.project.layers[index].selected = false;
+			paper.project.view.update();
+		}
+	}
+
+
 
 });
 
@@ -160,6 +239,11 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 	// update smooth pressure
 	if (wacom.loaded) {
 		this.smoothPressure = lerp(this.smoothPressure, wacom.pressure, this.pressureAccel);
+	}
+
+	// check if layer is active
+	if (!paper.project.activeLayer.visible) {
+		return;
 	}
 
 	// create a new path if necessary

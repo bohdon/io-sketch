@@ -11,20 +11,28 @@ body {
 	justify-content: center;
 }
 
+
 #artbox {
 	background-color: #fff;
-	width: 400px;
+	width: 500px;
 	height: 540px;
 	min-width: 400px;
 	min-height: 540px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
 	overflow: hidden;
-	
+
 	display: flex;
-	flex-flow: column;
+	flex-flow: row;
 
 	-webkit-user-select: none;
+}
+
+
+#artboxleft {
+	width: 100%;
+	display: flex;
+	flex-flow: column;
 }
 
 #artcanvas {
@@ -32,19 +40,40 @@ body {
 	height: 100%;
 }
 
+
 .artbar {
 	background-color: #f2f2f2;
-	display: box;
 	padding: 6px;
+}
+
+
+#layerspanel {
+	width: 60px;
+	border-left: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	flex-direction: column-reverse;
+	justify-content: center;
+}
+
+
+
+#artbartop {
 	height: 30px;
 	line-height: 30px;
-}
-#artbartop {
 	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: bottom;
+	justify-content: center;
 }
+
+
 #artbarbottom {
+	height: 30px;
+	line-height: 30px;
 	border-top: 1px solid #ddd;
 }
+
 
 #brushSize {
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
@@ -55,10 +84,6 @@ body {
 	width: 30px;
 }
 
-#brushColors {
-	height: 30px;
-	float: right;
-}
 
 .colorSwatch {
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
@@ -74,7 +99,6 @@ body {
 	height: 30px;
 	margin: 0px;
 }
-
 .colorSwatch.active {
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
 	width: 30px;
@@ -82,3 +106,25 @@ body {
 	margin: 0px;
 }
 
+
+.layerTile {
+	color: rgba(0, 0, 0, .15);
+	background-color: rgba(255, 255, 255, 0.25);
+	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.05);
+	border-radius: 3px;
+	text-align: center;
+	line-height: 40px;
+	margin: 2px;
+	width: 40px;
+	height: 40px;
+}
+
+.layerTile:hover {
+	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.layerTile.active {
+	color: rgba(0, 0, 0, .6);
+	background-color: rgba(255, 255, 255, 1);
+	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+}
