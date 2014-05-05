@@ -8,19 +8,20 @@
 	<script type="text/javascript" src="../js/paper-full.js"></script>
 	<script type="text/javascript" src="../js/wacom.js"></script>
 	<script type="text/javascript" src="../js/iosketch.js"></script>
+	<script type="text/javascript" src="../js/sketchtest.js"></script>
 </head>
 <body>
-	<div id="artbox">
+	<div id="artbox" class="iosketch">
 		<div id="artboxleft">
 			<div id="artbartop" class="artbar">
 				<div id="brushColors"></div>
 			</div>
-			<canvas id="artcanvas"></canvas>
+			<canvas id="sketchcanvas" class="artcanvas"></canvas>
 			<div id="artbarbottom" class="artbar">
 				<div id="brushSize">0</div>
 			</div>
 		</div>
-		<div id="layerspanel" class="artbar"></div>
+		<div id="layers" class="artbar"></div>
 	</div>
 
 </body>

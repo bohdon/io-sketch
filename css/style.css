@@ -28,26 +28,24 @@ body {
 	-webkit-user-select: none;
 }
 
-
 #artboxleft {
 	width: 100%;
 	display: flex;
 	flex-flow: column;
 }
 
-#artcanvas {
+
+.artcanvas {
 	width: 100%;
 	height: 100%;
 }
-
-
 .artbar {
 	background-color: #f2f2f2;
 	padding: 6px;
 }
 
 
-#layerspanel {
+#layers {
 	width: 60px;
 	border-left: 1px solid #ddd;
 	display: flex;
@@ -55,9 +53,6 @@ body {
 	flex-direction: column-reverse;
 	justify-content: center;
 }
-
-
-
 #artbartop {
 	height: 30px;
 	line-height: 30px;
@@ -66,8 +61,6 @@ body {
 	align-items: bottom;
 	justify-content: center;
 }
-
-
 #artbarbottom {
 	height: 30px;
 	line-height: 30px;
