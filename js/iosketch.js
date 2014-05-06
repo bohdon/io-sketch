@@ -265,7 +265,6 @@ function PaintBrush(sketch) {
 
 	this.events = {};
 	this.smoothPressure = 0;
-	this.path;
 
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
@@ -395,6 +394,10 @@ PaintBrush.prototype.onKeyDown = function(event) {
 		this.decreaseBrushSize();
 	} else if (event.key == ']') {
 		this.increaseBrushSize();
+	} else if (event.key == 'b') {
+		// already painting
+	} else if (event.key == 'e') {
+		this.eraseTool.activate();
 	}
 };
 
@@ -416,21 +419,50 @@ function EraserBrush(sketch) {
 	this.activate = this.tool.activate.bind(this.tool);
 }
 
+EraserBrush.prototype.deleteIntersecting = function() {
+	if (this.path) {
+		var children = paper.project.activeLayer.children;
+		for (var i = children.length - 1; i >= 0; i--) {
+			var ints = this.path.getIntersections(children[i]);
+			if (ints.length) {
+				children[i].remove();
+			}
+		};
+	}
+}
+
 EraserBrush.prototype.onMouseDown = function(event) {
 	// check for tool switch
-	if (!wacom.isEraser && this.paintTool) {
+	if ((wacom.active && !wacom.isEraser) && this.paintTool) {
 		this.paintTool.activate();
 		this.paintTool.onMouseDown(event);
 	}
 };
 
 EraserBrush.prototype.onMouseDrag = function(event) {
+	if (!this.path) {
+		this.path = new paper.Path();
+		this.path.add(event.lastPoint);
+	}
+	this.deleteIntersecting();
+	this.path.add(event.point);
 };
 
 EraserBrush.prototype.onMouseUp = function(event) {
+	if (this.path) {
+		this.path.add(event.point);
+		this.deleteIntersecting();
+		this.path.remove();
+		this.path = null;
+	}
 };	
 
 EraserBrush.prototype.onKeyDown = function(event) {	
+	if (event.key == 'b') {
+		this.paintTool.activate();
+	} else if (event.key == 'e') {
+		// already eraser
+	}
 };
 
 
