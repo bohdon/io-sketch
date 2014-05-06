@@ -127,9 +127,9 @@ IOSketch.prototype.updateLayerButtons = function() {
 		if (child_ids.indexOf(username) < 0) {
 			// add new child element
 			var elem = document.createElement(user.image ? 'img' : 'div');
-			elem.addEventListener('click', this.setLayerActive.bind(this));
-			elem.addEventListener('mouseover', this.setLayerHilited.bind(this, true));
-			elem.addEventListener('mouseout', this.setLayerHilited.bind(this, false));
+			elem.addEventListener('click', this.setLayerActiveCallback.bind(this));
+			elem.addEventListener('mouseover', this.setLayerHilitedCallback.bind(this, true));
+			elem.addEventListener('mouseout', this.setLayerHilitedCallback.bind(this, false));
 			if (user.image) {
 				elem.src = user.image;
 			} else {
@@ -146,7 +146,7 @@ IOSketch.prototype.updateLayerButtons = function() {
 	// TODO: sort layer elements
 }
 
-IOSketch.prototype.setLayerActive = function(e, activate) {
+IOSketch.prototype.setLayerActiveCallback = function(e, activate) {
 	this.activate();
 	// TEMP: middle-mouse to switch layers
 	if (e.button != 0) {
@@ -161,7 +161,7 @@ IOSketch.prototype.setLayerActive = function(e, activate) {
 		var allLayers = document.getElementsByClassName("layerButton");
 		for (var i = 0; i < allLayers.length; i++) {
 			if ($(allLayers[i]).hasClass('active')) {
-				this.setLayerActive({target: allLayers[i]}, false);
+				this.setLayerActiveCallback({target: allLayers[i]}, false);
 			}
 		};
 		activate = true;
@@ -184,7 +184,7 @@ IOSketch.prototype.setLayerActive = function(e, activate) {
 	}
 };
 
-IOSketch.prototype.setLayerHilited = function(hilite, e) {
+IOSketch.prototype.setLayerHilitedCallback = function(hilite, e) {
 	this.activate();
 	var user = this.users[e.target.getAttribute('user')];
 	if (user) {
@@ -234,10 +234,12 @@ IOSketch.prototype.updateColorSwatches = function() {
 
 IOSketch.prototype.setBrushColorCallback = function(e) {
 	var swatch = e.target;
-	var actives = document.getElementsByClassName('colorSwatch boxButton active');
-	for (var i = 0; i < actives.length; i++) {
-		actives[i].style.backgroundColor = colorWithAlpha(actives[i].style.color, 0.5);
-		$(actives[i]).removeClass('active');
+	var children = this.elems.colorSwatches.children;
+	for (var i = 0; i < children.length; i++) {
+		if ($(children[i]).hasClass('active')) {
+			children[i].style.backgroundColor = colorWithAlpha(children[i].style.color, 0.5);
+			$(children[i]).removeClass('active');
+		}
 	};
 	$(swatch).addClass('active');
 	swatch.style.backgroundColor = swatch.style.color;
