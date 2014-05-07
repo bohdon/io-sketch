@@ -201,10 +201,6 @@ IOSketch.prototype.setupBrushes = function() {
 	this.paintBrush = new PaintBrush(this);
 	this.eraseBrush = new EraserBrush(this);
 
-	// setup relation to allow auto-tool switching
-	this.paintBrush.eraseTool = this.eraseBrush.tool;
-	this.eraseBrush.paintTool = this.paintBrush.tool;
-
 	// setup brush size display
 	this.paintBrush.addEventListener(this.elems.brushSize, function() {
 		this.elems.brushSize.innerHTML = this.paintBrush.brushMaxSize;
@@ -334,14 +330,27 @@ PaintBrush.prototype.decreaseBrushSize = function() {
 	this.brushSize = Math.max(1, this.brushMaxSize / 2);
 };
 
+PaintBrush.prototype.colorIntersecting = function(event, path) {
+	var children = paper.project.activeLayer.children;
+	for (var i = children.length - 1; i >= 0; i--) {
+		if (children[i] != path) {
+			var ints = path.getIntersections(children[i]);
+			if (ints.length) {
+				children[i].fillColor = this.brushColor;
+			}
+		}
+	};
+};
+
 
 PaintBrush.prototype.onMouseDown = function(event) {
 	// check for tool switch
-	if (wacom.isEraser && this.eraseTool) {
-		this.eraseTool.activate();
-		this.eraseTool.onMouseDown(event);
+	if (wacom.isEraser && this.sketch.eraseBrush) {
+		this.sketch.eraseBrush.activate();
+		this.sketch.eraseBrush.tool.onMouseDown(event);
 	}
 	this.smoothPressure = 0;
+	// TODO: hit test and color paths on down
 };
 
 PaintBrush.prototype.onMouseDrag = function(event) {
@@ -359,21 +368,31 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 		return;
 	}
 
+
 	// create a new path if necessary
 	if (!this.path) {
-		this.path = new paper.Path({
-			fillColor: this.brushColor
-		});
-		this.path.add(event.lastPoint);
+		if (event.modifiers.shift) {
+			// dont draw, just color existing objects
+			var path = new paper.Path();
+			path.add(event.lastPoint);
+			path.add(event.point);
+			this.colorIntersecting(event, path);
+			path.remove();
+			return;
+
+		} else {
+			// start drawing path
+			this.path = new paper.Path();
+			this.path.fillColor = this.brushColor;
+			this.path.add(event.lastPoint);
+		}
 	}
 
+	// add to path on both sides creating dynamic width
 	var delta = event.delta.normalize();
 	delta.angle = delta.angle + 90;
-
-	// add to path on both sides creation dynamic width
 	var top = event.middlePoint.add(delta.multiply(this.brushSize));
 	var bottom = event.middlePoint.add(delta.multiply(-this.brushSize));
-
 	this.path.add(top);
 	this.path.insert(0, bottom);
 	this.path.smooth();
@@ -397,7 +416,7 @@ PaintBrush.prototype.onKeyDown = function(event) {
 	} else if (event.key == 'b') {
 		// already painting
 	} else if (event.key == 'e') {
-		this.eraseTool.activate();
+		this.sketch.eraseBrush.activate();
 	}
 };
 
@@ -419,47 +438,48 @@ function EraserBrush(sketch) {
 	this.activate = this.tool.activate.bind(this.tool);
 }
 
-EraserBrush.prototype.deleteIntersecting = function() {
-	if (this.path) {
-		var children = paper.project.activeLayer.children;
-		for (var i = children.length - 1; i >= 0; i--) {
-			var ints = this.path.getIntersections(children[i]);
+EraserBrush.prototype.deleteIntersecting = function(event, path) {
+	// color is used for selective deletion
+	var brushColor = new paper.Color(this.sketch.paintBrush.brushColor);
+	var children = paper.project.activeLayer.children;
+	for (var i = children.length - 1; i >= 0; i--) {
+		if (children[i] != path) {
+			var ints = path.getIntersections(children[i]);
 			if (ints.length) {
+				if (event.modifiers.shift && !children[i].fillColor.equals(brushColor)) {
+					// dont erase, doesn't match the active color
+					continue;
+				}
 				children[i].remove();
 			}
-		};
+		}
 	}
 }
 
 EraserBrush.prototype.onMouseDown = function(event) {
 	// check for tool switch
-	if ((wacom.active && !wacom.isEraser) && this.paintTool) {
-		this.paintTool.activate();
-		this.paintTool.onMouseDown(event);
+	if ((wacom.active && !wacom.isEraser) && this.sketch.paintBrush) {
+		this.sketch.paintBrush.activate();
+		this.sketch.paintBrush.tool.onMouseDown(event);
 	}
+	// TODO: hit test and erase paths on down
 };
 
 EraserBrush.prototype.onMouseDrag = function(event) {
-	if (!this.path) {
-		this.path = new paper.Path();
-		this.path.add(event.lastPoint);
-	}
-	this.deleteIntersecting();
-	this.path.add(event.point);
+	// erase intersecting
+	var path = new paper.Path();
+	path.add(event.lastPoint);
+	path.add(event.point);
+	this.deleteIntersecting(event, path);
+	path.remove();
 };
 
 EraserBrush.prototype.onMouseUp = function(event) {
-	if (this.path) {
-		this.path.add(event.point);
-		this.deleteIntersecting();
-		this.path.remove();
-		this.path = null;
-	}
 };	
 
 EraserBrush.prototype.onKeyDown = function(event) {	
 	if (event.key == 'b') {
-		this.paintTool.activate();
+		this.sketch.paintBrush.activate();
 	} else if (event.key == 'e') {
 		// already eraser
 	}
