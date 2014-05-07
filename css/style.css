@@ -14,9 +14,9 @@ body {
 
 #artbox {
 	background-color: #fff;
-	width: 500px;
+	width: 960px;
 	height: 540px;
-	min-width: 400px;
+	min-width: 960px;
 	min-height: 540px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);

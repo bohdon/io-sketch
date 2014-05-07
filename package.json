@@ -4,7 +4,7 @@
   "main": "./html/index.html",
   "window": {
     "toolbar": true,
-    "width": 580,
+    "width": 1100,
     "height": 600
   },
   "webkit": {

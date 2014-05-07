@@ -450,23 +450,37 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 		return;
 	}
 
+	// check for dashing functionality
+	var shouldDraw = true;
+	this.dashDistance = event.modifiers.control ? 6 * this.brushSize : 0;
+	this.tool.maxDistance = event.modifiers.control ? this.dashDistance / 2 : null;
+	if (this.pathCore && this.dashDistance > 0) {
+		shouldDraw = this.pathCore.length % (this.dashDistance * 2.5) < this.dashDistance;
+	}
 
 	// create a new path if necessary
-	if (!this.path && !event.modifiers.option) {
-		if (event.modifiers.shift) {
+	if (!this.path) {
+		if (event.modifiers.option) {
+			// color picked
+		} else if (event.modifiers.shift) {
 			// dont draw, just color existing objects
 			var path = new paper.Path();
 			path.add(event.lastPoint);
 			path.add(event.point);
 			this.colorIntersecting(event, path);
 			path.remove();
-			return;
 
-		} else {
+		} else if (shouldDraw) {
 			// start drawing path
 			this.path = new paper.Path();
 			this.path.fillColor = this.brushColor;
 			this.path.add(event.lastPoint);
+			if (!this.pathCore) {
+				// create a core path that can be used
+				// to check distances, etc
+				this.pathCore = new paper.Path();
+				this.pathCore.add(event.lastPoint);
+			}
 		}
 	}
 
@@ -479,18 +493,33 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 		this.path.add(top);
 		this.path.insert(0, bottom);
 		this.path.smooth();
+		if (!shouldDraw) {
+			this.closePath(event);
+		}
+	}
+	if (this.pathCore) {
+		this.pathCore.add(event.point);
 	}
 };
 
 PaintBrush.prototype.onMouseUp = function(event) {
-	if (this.path) {
-		// finish path
-		this.path.add(event.point);
-		this.path.closed = true;
-		this.path.simplify(1);
-		this.path = null;
+	this.closePath(event);
+	if (this.pathCore) {
+		this.pathCore.remove();
+		this.pathCore = null;
 	}
 };
+
+PaintBrush.prototype.closePath = function(event) {
+	// close current visible path
+	if (this.path) {
+		this.path.add(event.point);
+		this.path.closed = true;
+		this.path.smooth();
+		this.path.simplify();
+		this.path = null;
+	}
+}
 
 
 
