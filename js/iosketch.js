@@ -1,3 +1,7 @@
+'use strict';
+
+var util = require('util');
+var events = require('events');
 
 
 var iosketch = new function() {
@@ -201,7 +205,7 @@ IOSketch.prototype.setupBrushes = function() {
 	this.paintBrush = new PaintBrush(this);
 	this.eraseBrush = new EraserBrush(this);
 	this.updateBrushSizeDisplay();
-	this.paintBrush.addEventListener('brushSizeChange', this.updateBrushSizeDisplay.bind(this));
+	this.paintBrush.on('brushSizeChange', this.updateBrushSizeDisplay.bind(this));
 };
 
 IOSketch.prototype.updateBrushSizeDisplay = function() {
@@ -213,7 +217,7 @@ IOSketch.prototype.updateBrushSizeDisplay = function() {
 IOSketch.prototype.setupColorSwatches = function() {
 	// build color swatch elements
 	this.updateColorSwatches();
-	this.paintBrush.addEventListener('brushColorChange', this.updateActiveColorSwatch.bind(this));
+	this.paintBrush.on('brushColorChange', this.updateActiveColorSwatch.bind(this));
 };
 
 IOSketch.prototype.updateColorSwatches = function() {
@@ -304,8 +308,9 @@ IOSketch.prototype.onKeyDown = function(event) {
 
 
 function PaintBrush(sketch) {
+	events.EventEmitter.call(this);
+
 	this.sketch = sketch;
-	this.events = {};
 
 	this.brushColor = new paper.Color('black');
 	this.brushMaxSize = 2;
@@ -325,26 +330,7 @@ function PaintBrush(sketch) {
 	this.activate = this.tool.activate.bind(this.tool);
 }
 
-
-PaintBrush.prototype.addEventListener = function(event, callback) {
-	if (!this.events[event]) {
-		this.events[event] = [];
-	}
-	this.events[event].push(callback);
-};
-
-PaintBrush.prototype.fireChange = function(event) {
-	if (!event) {
-		for (var key in this.events) {
-			this.fireChange(key);
-		}
-	} else if (this.events[event]) {
-		var these = this.events[event];
-		for (var i = 0; i < these.length; i++) {
-			these[i](this);
-		};
-	}
-};
+util.inherits(PaintBrush, events.EventEmitter);
 
 Object.defineProperty(PaintBrush.prototype, 'brushColor', {
 	get: function brushColor() {
@@ -352,7 +338,7 @@ Object.defineProperty(PaintBrush.prototype, 'brushColor', {
 	},
 	set: function brushColor(color) {
 		this._brushColor = new paper.Color(color);
-		this.fireChange('brushColorChange');
+		this.emit('brushColorChange');
 	}
 });
 
@@ -375,7 +361,7 @@ Object.defineProperty(PaintBrush.prototype, 'brushSize', {
 	},
 	set: function brushSize(size) {
 		this.brushMaxSize = size;
-		this.fireChange('brushSizeChange');
+		this.emit('brushSizeChange');
 	}
 });
 
