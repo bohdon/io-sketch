@@ -308,7 +308,7 @@ function PaintBrush(sketch) {
 	this.events = {};
 
 	this.brushColor = new paper.Color('black');
-	this.brushMaxSize = 4;
+	this.brushMaxSize = 2;
 	this.brushMinSizeScale = 0.1;
 	this.pressureSmoothing = 0.5;
 
@@ -317,6 +317,7 @@ function PaintBrush(sketch) {
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
 	this.tool.minDistance = 2;
+	this.tool.onMouseMove = this.onMouseMove.bind(this);
 	this.tool.onMouseDown = this.onMouseDown.bind(this);
 	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 	this.tool.onMouseUp = this.onMouseUp.bind(this);
@@ -413,13 +414,14 @@ PaintBrush.prototype.pickColor = function(event) {
 	}
 }
 
+PaintBrush.prototype.onMouseMove = function(event) {
+	// check for tool switch
+	if (wacom.isEraser) {
+		this.sketch.eraseBrush.activate();
+	}
+};
 
 PaintBrush.prototype.onMouseDown = function(event) {
-	// check for tool switch
-	if (wacom.isEraser && this.sketch.eraseBrush) {
-		this.sketch.eraseBrush.activate();
-		this.sketch.eraseBrush.tool.onMouseDown(event);
-	}
 	this.smoothPressure = 0;
 	
 	// hit test for possible color pick
@@ -452,7 +454,7 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 
 	// check for dashing functionality
 	var shouldDraw = true;
-	this.dashDistance = event.modifiers.control ? 6 * this.brushSize : 0;
+	this.dashDistance = event.modifiers.control ? 6 * this.brushMaxSize : 0;
 	this.tool.maxDistance = event.modifiers.control ? this.dashDistance / 2 : null;
 	if (this.pathCore && this.dashDistance > 0) {
 		shouldDraw = this.pathCore.length % (this.dashDistance * 2.5) < this.dashDistance;
@@ -532,6 +534,7 @@ function EraserBrush(sketch) {
 
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
+	this.tool.onMouseMove = this.onMouseMove.bind(this);
 	this.tool.onMouseDown = this.onMouseDown.bind(this);
 	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 	this.tool.onMouseUp = this.onMouseUp.bind(this);
@@ -553,15 +556,16 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 			}
 		}
 	}
-}
+};
+
+EraserBrush.prototype.onMouseMove = function(event) {
+	// check for tool switch
+	if (wacom.active && !wacom.isEraser) {
+		this.sketch.paintBrush.activate();
+	}
+};
 
 EraserBrush.prototype.onMouseDown = function(event) {
-	// check for tool switch
-	if ((wacom.active && !wacom.isEraser) && this.sketch.paintBrush) {
-		this.sketch.paintBrush.activate();
-		this.sketch.paintBrush.tool.onMouseDown(event);
-	}
-
 	if (event.modifiers.option) {
 		// color pick
 		this.sketch.paintBrush.pickColor(event);
