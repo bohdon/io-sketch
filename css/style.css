@@ -1,122 +1,96 @@
 * {
-	font-family: sans-serif;
-}
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0; }
 
 body {
-	background-color: #ddd;
-	margin: 0px;
-
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
+  background-color: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
 
 #artbox {
-	background-color: #fff;
-	width: 960px;
-	height: 540px;
-	min-width: 960px;
-	min-height: 540px;
-	border-radius: 5px;
-	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
-	overflow: hidden;
-
-	display: flex;
-	flex-flow: row;
-
-	-webkit-user-select: none;
-}
+  background-color: white;
+  width: 960px;
+  height: 540px;
+  min-width: 960px;
+  min-height: 540px;
+  border-radius: 5px;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-flow: row;
+  -webkit-user-select: none; }
 
 #artboxleft {
-	width: 100%;
-	display: flex;
-	flex-flow: column;
-}
-
+  width: 100%;
+  display: flex;
+  flex-flow: column; }
 
 .artcanvas {
-	width: 100%;
-	height: 100%;
-}
-.artbar {
-	background-color: #f2f2f2;
-	padding: 6px;
-}
-.artbar.right {
-	width: 60px;
-	border-left: 1px solid #ddd;
-	display: flex;
-	align-items: center;
-	flex-direction: column-reverse;
-	justify-content: center;
-}
-.artbar.top {
-	height: 30px;
-	line-height: 30px;
-	border-bottom: 1px solid #ddd;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-.artbar.bottom {
-	height: 30px;
-	line-height: 30px;
-	border-top: 1px solid #ddd;
-	display: flex;
-	align-items: center;
-	justify-content: left;
-}
+  width: 100%;
+  height: 100%; }
 
+.toolbar {
+  background-color: #f2f2f2;
+  padding: 6px; }
+  .toolbar.vert {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    flex-direction: column-reverse;
+    justify-content: center; }
+  .toolbar.horz {
+    height: 30px;
+    line-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center; }
+  .toolbar.top {
+    border-bottom: 1px solid #ddd; }
+  .toolbar.bot {
+    border-top: 1px solid #ddd; }
+  .toolbar.left {
+    border-right: 1px solid #ddd; }
+  .toolbar.right {
+    border-left: 1px solid #ddd; }
 
-.smallBox {
-	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-	background-color: white;
-	border-radius: 3px;
-	text-align: center;
-	width: 30px;
-}
-
-
-.colorSwatch {
-	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-	border-radius: 3px;
-	width: 22px;
-	height: 22px;
-	margin: 4px;
-	display: inline-block;
-	transition: width 20ms, height 20ms, margin 20ms;
-}
-.colorSwatch:hover {
-	width: 30px;
-	height: 30px;
-	margin: 0px;
-}
-.colorSwatch.active {
-	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
-	width: 30px;
-	height: 30px;
-	margin: 0px;
-}
-
-
-.layerButton {
-	opacity: .25;
-	color: rgba(0, 0, 0, .6);
-	background-color: rgba(255, 255, 255, 1);
-	box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
-	border-radius: 3px;
-	text-align: center;
-	margin: 2px;
-	width: 40px;
-	height: 40px;
-	line-height: 40px;
-	transition: opacity 100ms;
-}
-.layerButton:hover {
-	opacity: 0.4;
-}
-.layerButton.active {
-	opacity: 1;
-}
-
+.toolbar .box {
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 3px;
+  text-align: center;
+  width: 30px; }
+.toolbar .colorSwatch {
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  width: 22px;
+  height: 22px;
+  margin: 4px;
+  display: inline-block;
+  transition: width 20ms, height 20ms, margin 20ms; }
+  .toolbar .colorSwatch:hover {
+    width: 30px;
+    height: 30px;
+    margin: 0px; }
+  .toolbar .colorSwatch.active {
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
+    width: 30px;
+    height: 30px;
+    margin: 0px; }
+.toolbar .layerButton {
+  opacity: 0.25;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: white;
+  box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  text-align: center;
+  margin: 2px;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  transition: opacity 100ms; }
+  .toolbar .layerButton:hover {
+    opacity: 0.4; }
+  .toolbar .layerButton.active {
+    opacity: 1; }

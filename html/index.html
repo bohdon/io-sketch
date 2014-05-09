@@ -13,15 +13,20 @@
 <body>
 	<div id="artbox" class="iosketch">
 		<div id="artboxleft">
-			<div class="artbar top">
+			<div class="toolbar horz top">
 				<div id="brushColors"></div>
 			</div>
 			<canvas id="canvas" class="artcanvas"></canvas>
-			<div class="artbar bottom">
-				<div id="brushSize" class="smallBox">0</div>
+			<div class="toolbar horz bot">
+				<div id="toolbar" class="toolbar horz">
+					<img id="paintTool" class="box" src="../images/paintBrush.png"></img>
+					<img id="paintStroke" class="box solid"></img>
+					<div id="brushSize" class="box">0</div>
+					<img id="eraseTool" class="box" src="../images/eraser.png"></img>
+				</div>
 			</div>
 		</div>
-		<div id="layers" class="artbar right"></div>
+		<div id="layers" class="toolbar vert right"></div>
 	</div>
 
 </body>

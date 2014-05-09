@@ -1,0 +1,58 @@
+
+
+.toolbar {
+
+	.box {
+		box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+		background-color: white;
+		border-radius: 3px;
+		text-align: center;
+		width: 30px;
+	}
+
+
+	.colorSwatch {
+		box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+		border-radius: 3px;
+		width: 22px;
+		height: 22px;
+		margin: 4px;
+		display: inline-block;
+		transition: width 20ms, height 20ms, margin 20ms;
+
+		&:hover {
+			width: 30px;
+			height: 30px;
+			margin: 0px;
+		}
+		&.active {
+			box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
+			width: 30px;
+			height: 30px;
+			margin: 0px;
+		}
+	}
+
+
+	.layerButton {
+		opacity: .25;
+		color: rgba(0, 0, 0, .6);
+		background-color: rgba(255, 255, 255, 1);
+		box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+		border-radius: 3px;
+		text-align: center;
+		margin: 2px;
+		width: 40px;
+		height: 40px;
+		line-height: 40px;
+		transition: opacity 100ms;
+
+		&:hover {
+			opacity: 0.4;
+		}
+
+		&.active {
+			opacity: 1;
+		}
+	}
+}

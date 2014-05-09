@@ -1,5 +1,5 @@
 {
-  "name": "IO Sketch",
+  "name": "IOSketch",
   "version": "0.1.0",
   "main": "./html/index.html",
   "window": {
@@ -9,5 +9,9 @@
   },
   "webkit": {
     "plugin": true
+  },
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-sass": "~0.12.1"
   }
 }

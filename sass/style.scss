@@ -1,0 +1,49 @@
+
+
+@import '_constants';
+
+
+* {
+	font-family: sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: #ddd;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#artbox {
+	background-color: white;
+	width: 960px;
+	height: 540px;
+	min-width: 960px;
+	min-height: 540px;
+	border-radius: 5px;
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+
+	display: flex;
+	flex-flow: row;
+
+	-webkit-user-select: none;
+}
+
+#artboxleft {
+	width: 100%;
+	display: flex;
+	flex-flow: column;
+}
+
+
+.artcanvas {
+	width: 100%;
+	height: 100%;
+}
+
+
+@import '_toolbars';
+@import '_buttons';
