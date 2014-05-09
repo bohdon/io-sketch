@@ -14,17 +14,12 @@ function lerp(a, b, t){
 	return a + (b - a) * t;
 }
 
-function colorWithAlpha(color, alpha) {
-	var c = tinycolor(color);
-	c.setAlpha(alpha);
-	return c;
-}
-
 function getInitials(name) {
 	return name.match(/\b(\w)/g).join('');
 }
 
 function IOSketch(id, elems, opts) {
+	events.EventEmitter.call(this);
 
 	// register sketch
 	this.id = id;
@@ -50,6 +45,8 @@ function IOSketch(id, elems, opts) {
 
 
 }
+
+util.inherits(IOSketch, events.EventEmitter);
 
 IOSketch.prototype.activate = function() {
 	if (!this.isActive) {
@@ -141,7 +138,7 @@ IOSketch.prototype.updateLayerButtons = function() {
 			}
 			$(elem).attr({
 				user: username,
-			}).addClass("layerButton active");
+			}).addClass("box button active layerButton");
 			this.elems.layers.appendChild(elem);
 		}
 	}
@@ -202,14 +199,54 @@ IOSketch.prototype.setLayerHilitedCallback = function(hilite, e) {
 
 
 IOSketch.prototype.setupBrushes = function() {
-	this.paintBrush = new PaintBrush(this);
-	this.eraseBrush = new EraserBrush(this);
-	this.updateBrushSizeDisplay();
-	this.paintBrush.on('brushSizeChange', this.updateBrushSizeDisplay.bind(this));
+	var self = this;
+
+	self.paintBrush = new PaintBrush(self);
+	self.eraseBrush = new EraserBrush(self);
+
+	self.updateToolDisplay();
+	self.updateBrushSizeDisplay();
+	self.updateBrushStrokeDisplay();
+
+	self.elems.paintToolButton.addEventListener('click', function(){
+		self.paintBrush.activate();
+	});
+	self.elems.eraseToolButton.addEventListener('click', function(){
+		self.eraseBrush.activate();
+	});
+
+	self.on('toolChange', self.updateToolDisplay.bind(self));
+	self.paintBrush.on('brushSizeChange', self.updateBrushSizeDisplay.bind(self));
+	self.paintBrush.on('brushStrokeChange', self.updateBrushStrokeDisplay.bind(self));
+	self.eraseBrush.on('eraseTypeChange', self.updateEraseTypeDisplay.bind(self));
+};
+
+IOSketch.prototype.updateToolDisplay = function() {
+	var paint = $(this.elems.paintToolButton);
+	if (paper.tool == this.paintBrush.tool) {
+		paint.addClass('active');
+	} else {
+		paint.removeClass('active');
+	}
+
+	var erase = $(this.elems.eraseToolButton);
+	if (paper.tool == this.eraseBrush.tool) {
+		erase.addClass('active');
+	} else {
+		erase.removeClass('active');
+	}
 };
 
 IOSketch.prototype.updateBrushSizeDisplay = function() {
 	this.elems.brushSize.innerHTML = this.paintBrush.brushMaxSize;
+};
+
+IOSketch.prototype.updateBrushStrokeDisplay = function() {
+	this.elems.brushStroke.className = this.paintBrush.brushStroke;
+};
+
+IOSketch.prototype.updateEraseTypeDisplay = function() {
+	this.elems.eraseType.className = this.eraseBrush.eraseType;
 };
 
 
@@ -228,9 +265,8 @@ IOSketch.prototype.updateColorSwatches = function() {
 	// setup color swatches
 	for (var i = 0; i < this.opts.colors.length; i++) {
 		var swatch = document.createElement('div');
-		swatch.style.color = this.opts.colors[i];
-		swatch.style.backgroundColor = colorWithAlpha(this.opts.colors[i], 0.5);
-		swatch.className = 'colorSwatch boxButton';
+		swatch.style.backgroundColor = this.opts.colors[i];
+		swatch.className = 'box button small colorSwatch';
 		swatch.addEventListener('click', this.setBrushColorCallback.bind(this));
 		this.elems.colorSwatches.appendChild(swatch);
 	}
@@ -242,22 +278,18 @@ IOSketch.prototype.updateActiveColorSwatch = function() {
 	var swatches = this.elems.colorSwatches.children;
 	for (var i = 0; i < swatches.length; i++) {
 		var s = swatches[i];
-		var swatchColor = new paper.Color(swatches[i].style.color);
+		var swatchColor = new paper.Color(swatches[i].style.backgroundColor);
 		if (this.paintBrush.brushColor.equals(swatchColor)) {
-			// activate swatch
 			$(s).addClass('active');
-			s.style.backgroundColor = s.style.color;
 		} else {
-			// deactivate swatch
 			$(s).removeClass('active');
-			s.style.backgroundColor = colorWithAlpha(s.style.color, 0.5);
 		}
 	}
 };
 
 IOSketch.prototype.setBrushColorCallback = function(e) {
 	// set brush color to the clicked swatch's color
-	this.paintBrush.brushColor = e.target.style.color;
+	this.paintBrush.brushColor = e.target.style.backgroundColor;
 };
 
 IOSketch.prototype.selectRelativeColor = function(delta) {
@@ -279,6 +311,10 @@ IOSketch.prototype.selectRelativeColor = function(delta) {
 	}
 }
 
+IOSketch.prototype.toolChanged = function(tool) {
+	this.emit('toolChange', tool);
+}
+
 
 IOSketch.prototype.onKeyDown = function(event) {
 	// TODO: prevent tool change mid-drag
@@ -297,6 +333,22 @@ IOSketch.prototype.onKeyDown = function(event) {
 	} else if (event.key == 'v') {
 		this.selectRelativeColor(1);
 	}
+
+	if (event.modifiers.control) {
+		this.paintBrush.brushStroke = 'dashed';
+	}
+	if (event.modifiers.shift) {
+		this.eraseBrush.eraseType = 'color';
+	}
+}
+
+IOSketch.prototype.onKeyUp = function(event) {
+	if (!event.modifiers.control) {
+		this.paintBrush.brushStroke = 'solid';
+	}
+	if (!event.modifiers.shift) {
+		this.eraseBrush.eraseType = 'all';
+	}
 }
 
 
@@ -312,6 +364,7 @@ function PaintBrush(sketch) {
 
 	this.sketch = sketch;
 
+	this.brushStroke = 'solid';
 	this.brushColor = new paper.Color('black');
 	this.brushMaxSize = 2;
 	this.brushMinSizeScale = 0.1;
@@ -327,7 +380,11 @@ function PaintBrush(sketch) {
 	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 	this.tool.onMouseUp = this.onMouseUp.bind(this);
 	this.tool.onKeyDown = this.sketch.onKeyDown.bind(this.sketch);
-	this.activate = this.tool.activate.bind(this.tool);
+	this.tool.onKeyUp = this.sketch.onKeyUp.bind(this.sketch);
+	this.activate = function() {
+		this.tool.activate();
+		this.sketch.toolChanged();
+	};
 }
 
 util.inherits(PaintBrush, events.EventEmitter);
@@ -378,6 +435,17 @@ PaintBrush.prototype.increaseBrushSize = function() {
 PaintBrush.prototype.decreaseBrushSize = function() {
 	this.brushSize = Math.max(1, this.brushMaxSize / 2);
 };
+
+Object.defineProperty(PaintBrush.prototype, 'brushStroke', {
+	get: function brushStroke() {
+		return this._brushStroke;
+	},
+	set: function brushStroke(value) {
+		this._brushStroke = value;
+		this.emit('brushStrokeChange');
+	}
+});
+
 
 PaintBrush.prototype.colorIntersecting = function(event, path) {
 	var children = paper.project.activeLayer.children;
@@ -440,10 +508,13 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 
 	// check for dashing functionality
 	var shouldDraw = true;
-	this.dashDistance = event.modifiers.control ? 6 * this.brushMaxSize : 0;
-	this.tool.maxDistance = event.modifiers.control ? this.dashDistance / 2 : null;
-	if (this.pathCore && this.dashDistance > 0) {
-		shouldDraw = this.pathCore.length % (this.dashDistance * 2.5) < this.dashDistance;
+	this.tool.maxDistance = null;
+	if (this.brushStroke == 'dashed') {
+		this.dashDistance = 6 * this.brushMaxSize;
+		this.tool.maxDistance = this.dashDistance / 2;
+		if (this.pathCore && this.dashDistance > 0) {
+			shouldDraw = this.pathCore.length % (this.dashDistance * 2.5) < this.dashDistance;
+		}
 	}
 
 	// create a new path if necessary
@@ -516,7 +587,11 @@ PaintBrush.prototype.closePath = function(event) {
 //
 
 function EraserBrush(sketch) {
+	events.EventEmitter.call(this);
+
 	this.sketch = sketch;
+
+	this.eraseType = 'all';
 
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
@@ -525,8 +600,25 @@ function EraserBrush(sketch) {
 	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 	this.tool.onMouseUp = this.onMouseUp.bind(this);
 	this.tool.onKeyDown = this.sketch.onKeyDown.bind(this.sketch);
-	this.activate = this.tool.activate.bind(this.tool);
+	this.tool.onKeyUp = this.sketch.onKeyUp.bind(this.sketch);
+	this.activate = function() {
+		this.tool.activate();
+		this.sketch.toolChanged();
+	};
 }
+
+util.inherits(EraserBrush, events.EventEmitter);
+
+
+Object.defineProperty(EraserBrush.prototype, 'eraseType', {
+	get: function eraseType() {
+		return this._eraseType;
+	},
+	set: function eraseType(value) {
+		this._eraseType = value;
+		this.emit('eraseTypeChange');
+	}
+});
 
 EraserBrush.prototype.deleteIntersecting = function(event, path) {
 	var children = paper.project.activeLayer.children;

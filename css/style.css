@@ -11,9 +11,9 @@ body {
 
 #artbox {
   background-color: white;
-  width: 960px;
+  width: 400px;
   height: 540px;
-  min-width: 960px;
+  min-width: 400px;
   min-height: 540px;
   border-radius: 5px;
   box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
@@ -32,20 +32,10 @@ body {
   height: 100%; }
 
 .toolbar {
-  background-color: #f2f2f2;
-  padding: 6px; }
-  .toolbar.vert {
-    width: 60px;
-    display: flex;
-    align-items: center;
-    flex-direction: column-reverse;
-    justify-content: center; }
-  .toolbar.horz {
-    height: 30px;
-    line-height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center; }
+  font-size: 11pt; }
+  .toolbar.main {
+    background-color: #f2f2f2;
+    padding: 8px; }
   .toolbar.top {
     border-bottom: 1px solid #ddd; }
   .toolbar.bot {
@@ -54,43 +44,86 @@ body {
     border-right: 1px solid #ddd; }
   .toolbar.right {
     border-left: 1px solid #ddd; }
+  .toolbar.vert {
+    width: 30px;
+    display: flex;
+    align-items: center;
+    flex-direction: column-reverse;
+    justify-content: center; }
+  .toolbar.horz {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center; }
 
 .toolbar .box {
-  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
   background-color: white;
-  border-radius: 3px;
-  text-align: center;
-  width: 30px; }
-.toolbar .colorSwatch {
   box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-  width: 22px;
-  height: 22px;
-  margin: 4px;
-  display: inline-block;
-  transition: width 20ms, height 20ms, margin 20ms; }
-  .toolbar .colorSwatch:hover {
-    width: 30px;
-    height: 30px;
-    margin: 0px; }
-  .toolbar .colorSwatch.active {
-    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
-    width: 30px;
-    height: 30px;
-    margin: 0px; }
-.toolbar .layerButton {
-  opacity: 0.25;
-  color: rgba(0, 0, 0, 0.6);
-  background-color: white;
-  box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-  text-align: center;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
   margin: 2px;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  transition: opacity 100ms; }
-  .toolbar .layerButton:hover {
-    opacity: 0.4; }
-  .toolbar .layerButton.active {
+  text-align: center; }
+  .toolbar .box.inactive {
+    opacity: 0.25; }
+.toolbar .button {
+  opacity: 0.25;
+  transition: opacity 60ms; }
+  .toolbar .button:hover {
+    opacity: 0.5; }
+  .toolbar .button.active {
     opacity: 1; }
+  .toolbar .button.small {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    margin: 4px;
+    transition: width 20ms, height 20ms, margin 20ms; }
+    .toolbar .button.small:hover, .toolbar .button.small.active {
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      margin: 0px; }
+.toolbar #paintToolButton {
+  transition: width 100ms; }
+  .toolbar #paintToolButton .toolIcon {
+    width: 30px;
+    height: 30px;
+    background-repeat: no-repeat;
+    background-size: 30px;
+    background-image: url(../images/paintBrush.png); }
+  .toolbar #paintToolButton #brushStroke {
+    width: 0px;
+    height: 30px;
+    transition: width 100ms;
+    background-repeat: no-repeat;
+    background-size: 30px; }
+    .toolbar #paintToolButton #brushStroke.solid {
+      background-image: url(../images/solidStroke.png); }
+    .toolbar #paintToolButton #brushStroke.dashed {
+      background-image: url(../images/dashedStroke.png); }
+  .toolbar #paintToolButton:hover, .toolbar #paintToolButton.active {
+    width: 60px; }
+    .toolbar #paintToolButton:hover #brushStroke, .toolbar #paintToolButton.active #brushStroke {
+      width: 30px; }
+.toolbar #eraseToolButton {
+  transition: width 100ms; }
+  .toolbar #eraseToolButton .toolIcon {
+    width: 30px;
+    height: 30px;
+    background-size: 30px;
+    background-image: url(../images/eraser.png); }
+  .toolbar #eraseToolButton #eraseType {
+    width: 0px;
+    height: 30px;
+    transition: width 100ms;
+    overflow: hidden; }
+    .toolbar #eraseToolButton #eraseType.all::before {
+      content: 'all'; }
+    .toolbar #eraseToolButton #eraseType.color::before {
+      content: 'color'; }
+  .toolbar #eraseToolButton:hover, .toolbar #eraseToolButton.active {
+    width: 70px; }
+    .toolbar #eraseToolButton:hover #eraseType, .toolbar #eraseToolButton.active #eraseType {
+      width: 40px; }

@@ -1,21 +1,10 @@
 
 .toolbar {
-	background-color: $toolbar-bg-color;
-	padding: 6px;
+	font-size: 11pt;
 
-	&.vert {
-		width: 60px;
-		display: flex;
-		align-items: center;
-		flex-direction: column-reverse;
-		justify-content: center;
-	}
-	&.horz {
-		height: 30px;
-		line-height: 30px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	&.main {
+		background-color: $toolbar-bg-color;
+		padding: 8px;
 	}
 	&.top {
 		border-bottom: 1px solid $toolbar-border-color;
@@ -28,6 +17,20 @@
 	}
 	&.right {
 		border-left: 1px solid $toolbar-border-color;
+	}
+
+	&.vert {
+		width: 30px;
+		display: flex;
+		align-items: center;
+		flex-direction: column-reverse;
+		justify-content: center;
+	}
+	&.horz {
+		height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 }

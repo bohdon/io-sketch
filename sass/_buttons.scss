@@ -3,56 +3,119 @@
 .toolbar {
 
 	.box {
-		box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
 		background-color: white;
-		border-radius: 3px;
-		text-align: center;
-		width: 30px;
-	}
-
-
-	.colorSwatch {
 		box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
 		border-radius: 3px;
-		width: 22px;
-		height: 22px;
-		margin: 4px;
-		display: inline-block;
-		transition: width 20ms, height 20ms, margin 20ms;
+		width: 30px;
+		height: 30px;
+		line-height: 30px;
+		margin: 2px;
+		text-align: center;
 
-		&:hover {
-			width: 30px;
-			height: 30px;
-			margin: 0px;
+		&.inactive {
+			opacity: 0.25;
 		}
-		&.active {
-			box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
-			width: 30px;
-			height: 30px;
-			margin: 0px;
-		}
+
 	}
 
-
-	.layerButton {
-		opacity: .25;
-		color: rgba(0, 0, 0, .6);
-		background-color: rgba(255, 255, 255, 1);
-		box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
-		border-radius: 3px;
-		text-align: center;
-		margin: 2px;
-		width: 40px;
-		height: 40px;
-		line-height: 40px;
-		transition: opacity 100ms;
+	.button {
+		opacity: 0.25;
+		transition: opacity 60ms;
 
 		&:hover {
-			opacity: 0.4;
+			opacity: 0.5;
 		}
-
 		&.active {
 			opacity: 1;
 		}
+
+		&.small {
+			width: 22px;
+			height: 22px;
+			line-height: 22px;
+			margin: 4px;
+			transition: width 20ms, height 20ms, margin 20ms;
+
+			&:hover, &.active {
+				width: 30px;
+				height: 30px;
+				line-height: 30px;
+				margin: 0px;
+			}
+		}
 	}
+
+	#paintToolButton {
+		transition: width 100ms;
+
+		.toolIcon {
+			width: 30px;
+			height: 30px;
+			background-repeat: no-repeat;
+			background-size: 30px;
+			background-image: url(../images/paintBrush.png);
+		}
+
+		#brushStroke {
+			width: 0px;
+			height: 30px;
+			transition: width 100ms;
+			background-repeat: no-repeat;
+			background-size: 30px;
+
+			&.solid {
+				background-image: url(../images/solidStroke.png);
+			}
+
+			&.dashed {
+				background-image: url(../images/dashedStroke.png);
+			}
+
+		}
+
+		&:hover, &.active {
+			width: 60px;
+
+			#brushStroke {
+				width: 30px;
+			}
+		}
+
+	}
+
+	#eraseToolButton {
+		transition: width 100ms;
+
+		.toolIcon {
+			width: 30px;
+			height: 30px;
+			background-size: 30px;
+			background-image: url(../images/eraser.png);
+		}
+
+		#eraseType {
+			width: 0px;
+			height: 30px;
+			transition: width 100ms;
+			overflow: hidden;
+
+			&.all::before {
+				content: 'all';
+			}
+
+			&.color::before {
+				content: 'color';
+			}
+
+		}
+
+		&:hover, &.active {
+			width: 70px;
+
+			#eraseType {
+				width: 40px;
+			}
+		}
+	}
+
 }
