@@ -30,3 +30,31 @@ $(document).ready(function() {
 	});
 
 });
+
+function onDocumentDrag(event) {
+	event.preventDefault();
+}
+
+function onDocumentDrop(event) {
+	event.preventDefault();
+
+	var file = event.dataTransfer.files[0];
+	var reader = new FileReader();
+
+	reader.onload = function (event) {
+		var image = document.createElement('img');
+		image.onload = function() {
+			raster = new paper.Raster(image);
+			raster.fitBounds(paper.project.view.bounds);
+			paper.project.activeLayer.insertChild(0, raster);
+			paper.project.view.update();
+		};
+		image.src = event.target.result;
+	};
+	reader.readAsDataURL(file);
+}
+
+document.addEventListener('drop', onDocumentDrop);
+document.addEventListener('dragover', onDocumentDrag);
+document.addEventListener('dragleave', onDocumentDrag);
+

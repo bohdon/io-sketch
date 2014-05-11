@@ -32,7 +32,10 @@ function isIntersecting(path, item) {
 }
 
 function hasFillColor(item, color) {
-	return item.fillColor.equals(color);
+	if (item.fillColor != undefined) {
+		return item.fillColor.equals(color);
+	}
+	return false;
 }
 
 function IOSketch(id, elems, opts) {
@@ -681,7 +684,7 @@ EraserBrush.prototype.onMouseDown = function(event) {
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// erase
-			if (!event.modifiers.shift || hitResult.item.fillColor.equals(this.sketch.paintBrush.brushColor)) {
+			if (!event.modifiers.shift || hasFillColor(hitResult.item, this.sketch.paintBrush.brushColor)) {
 				if (hitResult.item.parent.className != 'Layer') {
 					hitResult.item.parent.remove();
 				} else {
