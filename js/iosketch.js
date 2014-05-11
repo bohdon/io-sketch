@@ -18,6 +18,23 @@ function getInitials(name) {
 	return name.match(/\b(\w)/g).join('');
 }
 
+function isIntersecting(path, item) {
+	if (item.className == 'Path') {
+		return path.getIntersections(item).length > 0;
+	} else if (item.className == 'Group') {
+		for (var i = 0; i < item.children.length; i++) {
+			if (isIntersecting(path, item.children[i])) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function hasFillColor(item, color) {
+	return item.fillColor.equals(color);
+}
+
 function IOSketch(id, elems, opts) {
 	events.EventEmitter.call(this);
 
@@ -451,8 +468,7 @@ PaintBrush.prototype.colorIntersecting = function(event, path) {
 	var children = paper.project.activeLayer.children;
 	for (var i = children.length - 1; i >= 0; i--) {
 		if (children[i] != path) {
-			var ints = path.getIntersections(children[i]);
-			if (ints.length) {
+			if (isIntersecting(path, children[i])) {
 				children[i].fillColor = this.brushColor;
 			}
 		}
@@ -486,7 +502,11 @@ PaintBrush.prototype.onMouseDown = function(event) {
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// apply color
-			hitResult.item.fillColor = this.brushColor;
+			if (hitResult.item.parent.className != 'Layer') {
+				hitResult.item.parent.fillColor = this.brushColor;
+			} else {
+				hitResult.item.fillColor = this.brushColor;
+			}
 		}
 	}
 };
@@ -534,9 +554,16 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 			this.path = new paper.Path();
 			this.path.fillColor = this.brushColor;
 			this.path.add(event.lastPoint);
+
+			// group all newly created strokes
+			if (!this.pathGroup) {
+				this.pathGroup = new paper.Group();
+			}
+			this.pathGroup.addChild(this.path);
+
+			// create a core path that can be used
+			// to check distances, etc
 			if (!this.pathCore) {
-				// create a core path that can be used
-				// to check distances, etc
 				this.pathCore = new paper.Path();
 				this.pathCore.add(event.lastPoint);
 			}
@@ -563,6 +590,9 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 
 PaintBrush.prototype.onMouseUp = function(event) {
 	this.closePath(event);
+	if (this.pathGroup) {
+		this.pathGroup = null;
+	}
 	if (this.pathCore) {
 		this.pathCore.remove();
 		this.pathCore = null;
@@ -624,9 +654,8 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 	var children = paper.project.activeLayer.children;
 	for (var i = children.length - 1; i >= 0; i--) {
 		if (children[i] != path) {
-			var ints = path.getIntersections(children[i]);
-			if (ints.length) {
-				if (event.modifiers.shift && !children[i].fillColor.equals(this.sketch.paintBrush.brushColor)) {
+			if (isIntersecting(path, children[i])) {
+				if (event.modifiers.shift && !hasFillColor(children[i], this.sketch.paintBrush.brushColor)) {
 					// dont erase, doesn't match the active color
 					continue;
 				}
@@ -653,7 +682,11 @@ EraserBrush.prototype.onMouseDown = function(event) {
 		if (hitResult) {
 			// erase
 			if (!event.modifiers.shift || hitResult.item.fillColor.equals(this.sketch.paintBrush.brushColor)) {
-				hitResult.item.remove();
+				if (hitResult.item.parent.className != 'Layer') {
+					hitResult.item.parent.remove();
+				} else {
+					hitResult.item.remove();
+				}
 			}
 		}
 	}
