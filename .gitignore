@@ -4,4 +4,4 @@ nwsnapshot
 credits.html
 .DS_Store
 validation-*.json
-
+.sass-cache

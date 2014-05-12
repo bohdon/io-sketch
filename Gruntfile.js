@@ -18,6 +18,6 @@ module.exports = function(grunt) {
   // Default task(s).
   //grunt.registerTask('default', ['uglify']);
 
-  grunt.loadNpmTasks('grunt-sass');
+  grunt.loadNpmTasks('grunt-contrib-sass');
 
 };

@@ -1,7 +1,5 @@
 * {
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0; }
+  font-family: sans-serif; }
 
 body {
   background-color: #ddd;
@@ -9,125 +7,122 @@ body {
   align-items: center;
   justify-content: center; }
 
-#artbox {
+.box {
+  border-radius: 3px;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden; }
+  .box.disabled {
+    opacity: 0.25; }
+
+.iosketch {
   background-color: #fafafa;
+  border-radius: 5px;
   width: 447px;
   height: 494px;
-  border-radius: 5px;
-  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
   display: flex;
   flex-flow: row;
   -webkit-user-select: none; }
-
-#artboxleft {
-  display: flex;
-  flex-flow: column;
-  flex-grow: 1;
-  flex-shrink: 0;
-  justify-content: space-between; }
-
-.artcanvas {
-  background-color: white;
-  width: 400px;
-  height: 400px;
-  margin: auto;
-  flex-shrink: 0; }
-
-.toolbar {
-  font-size: 11pt;
-  flex-shrink: 0; }
-  .toolbar.main {
-    background-color: #f2f2f2;
-    padding: 8px; }
-  .toolbar.top {
-    border-bottom: 1px solid #ddd; }
-  .toolbar.bot {
-    border-top: 1px solid #ddd; }
-  .toolbar.left {
-    border-right: 1px solid #ddd; }
-  .toolbar.right {
-    border-left: 1px solid #ddd; }
-  .toolbar.vert {
+  .iosketch .toolbar {
+    font-size: 11pt;
+    flex-shrink: 0;
+    transition: width 40ms, height 40ms, padding 40ms; }
+    .iosketch .toolbar.main {
+      background-color: #f2f2f2;
+      padding: 8px; }
+    .iosketch .toolbar.top {
+      border-bottom: 1px solid #dddddd; }
+    .iosketch .toolbar.bot {
+      border-top: 1px solid #dddddd; }
+    .iosketch .toolbar.left {
+      border-right: 1px solid #dddddd; }
+    .iosketch .toolbar.right {
+      border-left: 1px solid #dddddd; }
+    .iosketch .toolbar.vert {
+      width: 30px;
+      display: flex;
+      align-items: center;
+      flex-direction: column-reverse;
+      justify-content: center; }
+    .iosketch .toolbar.horz {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center; }
+  .iosketch .button, .iosketch .button-small {
+    background-color: white;
+    text-align: center;
+    opacity: 0.25;
+    transition: opacity 60ms;
     width: 30px;
-    display: flex;
-    align-items: center;
-    flex-direction: column-reverse;
-    justify-content: center; }
-  .toolbar.horz {
     height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center; }
-
-.toolbar .box {
-  background-color: white;
-  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
-  margin: 2px;
-  text-align: center; }
-  .toolbar .box.inactive {
-    opacity: 0.25; }
-.toolbar .button {
-  opacity: 0.25;
-  transition: opacity 60ms; }
-  .toolbar .button:hover {
-    opacity: 0.5; }
-  .toolbar .button.active {
-    opacity: 1; }
-  .toolbar .button.small {
+    line-height: 30px;
+    margin: 2px; }
+    .iosketch .button:hover, .iosketch .button-small:hover {
+      opacity: 0.5; }
+    .iosketch .button.active, .iosketch .active.button-small {
+      opacity: 1; }
+  .iosketch .button-small {
+    transition: width 40ms, height 40ms, margin 40ms;
     width: 22px;
     height: 22px;
     line-height: 22px;
-    margin: 4px;
-    transition: width 40ms, height 40ms, margin 40ms; }
-    .toolbar .button.small:hover, .toolbar .button.small.active {
+    margin: 4px; }
+    .iosketch .button-small:hover, .iosketch .button-small.active {
       width: 30px;
       height: 30px;
       line-height: 30px;
       margin: 0px; }
-.toolbar #paintToolButton {
-  transition: width 100ms; }
-  .toolbar #paintToolButton .toolIcon {
-    width: 30px;
-    height: 30px;
-    background-repeat: no-repeat;
-    background-size: 30px;
-    background-image: url(../images/paintBrush.png); }
-  .toolbar #paintToolButton #brushStroke {
-    width: 0px;
-    height: 30px;
-    transition: width 100ms;
-    background-repeat: no-repeat;
-    background-size: 30px; }
-    .toolbar #paintToolButton #brushStroke.solid {
-      background-image: url(../images/solidStroke.png); }
-    .toolbar #paintToolButton #brushStroke.dashed {
-      background-image: url(../images/dashedStroke.png); }
-  .toolbar #paintToolButton:hover, .toolbar #paintToolButton.active {
-    width: 60px; }
-    .toolbar #paintToolButton:hover #brushStroke, .toolbar #paintToolButton.active #brushStroke {
-      width: 30px; }
-.toolbar #eraseToolButton {
-  transition: width 100ms; }
-  .toolbar #eraseToolButton .toolIcon {
-    width: 30px;
-    height: 30px;
-    background-size: 30px;
-    background-image: url(../images/eraser.png); }
-  .toolbar #eraseToolButton #eraseType {
-    width: 0px;
-    height: 30px;
-    transition: width 100ms;
-    overflow: hidden; }
-    .toolbar #eraseToolButton #eraseType.all::before {
-      content: 'all'; }
-    .toolbar #eraseToolButton #eraseType.color::before {
-      content: 'color'; }
-  .toolbar #eraseToolButton:hover, .toolbar #eraseToolButton.active {
-    width: 70px; }
-    .toolbar #eraseToolButton:hover #eraseType, .toolbar #eraseToolButton.active #eraseType {
-      width: 40px; }
+  .iosketch #paintToolButton {
+    transition: width 100ms; }
+    .iosketch #paintToolButton .toolIcon {
+      width: 30px;
+      height: 30px;
+      background-size: 30px;
+      background-repeat: no-repeat;
+      background-image: url(../images/paintBrush.png); }
+    .iosketch #paintToolButton #brushStroke {
+      width: 0px;
+      height: 30px;
+      transition: width 100ms;
+      background-size: 30px;
+      background-repeat: no-repeat; }
+      .iosketch #paintToolButton #brushStroke.solid {
+        background-image: url(../images/solidStroke.png); }
+      .iosketch #paintToolButton #brushStroke.dashed {
+        background-image: url(../images/dashedStroke.png); }
+    .iosketch #paintToolButton:hover, .iosketch #paintToolButton.active {
+      width: 60px; }
+      .iosketch #paintToolButton:hover #brushStroke, .iosketch #paintToolButton.active #brushStroke {
+        width: 30px; }
+  .iosketch #eraseToolButton {
+    transition: width 100ms; }
+    .iosketch #eraseToolButton .toolIcon {
+      width: 30px;
+      height: 30px;
+      background-size: 30px;
+      background-image: url(../images/eraser.png); }
+    .iosketch #eraseToolButton #eraseType {
+      width: 0px;
+      height: 30px;
+      transition: width 100ms;
+      overflow: hidden; }
+      .iosketch #eraseToolButton #eraseType.all::before {
+        content: 'all'; }
+      .iosketch #eraseToolButton #eraseType.color::before {
+        content: 'color'; }
+    .iosketch #eraseToolButton:hover, .iosketch #eraseToolButton.active {
+      width: 70px; }
+      .iosketch #eraseToolButton:hover #eraseType, .iosketch #eraseToolButton.active #eraseType {
+        width: 40px; }
+  .iosketch #artboxleft {
+    display: flex;
+    flex-flow: column;
+    flex-grow: 1;
+    flex-shrink: 0;
+    justify-content: space-between; }
+  .iosketch .artcanvas {
+    background-color: white;
+    width: 400px;
+    height: 400px;
+    margin: auto;
+    flex-shrink: 0; }

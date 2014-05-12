@@ -8,7 +8,7 @@ var iosketch = new function() {
 
 var sketches = {};
 
-var defaultColors = ['black', 'grey', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
+var defaultColors = ['black', '#bbb', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
 
 function lerp(a, b, t){
 	return a + (b - a) * t;
@@ -286,7 +286,7 @@ IOSketch.prototype.updateColorSwatches = function() {
 	for (var i = 0; i < this.opts.colors.length; i++) {
 		var swatch = document.createElement('div');
 		swatch.style.backgroundColor = this.opts.colors[i];
-		swatch.className = 'box button small colorSwatch';
+		swatch.className = 'box button-small colorSwatch';
 		swatch.addEventListener('click', this.setBrushColorCallback.bind(this));
 		this.elems.colorSwatches.appendChild(swatch);
 	}

@@ -1,121 +1,119 @@
 
 
-.toolbar {
+.button {
+	background-color: white;
+	text-align: center;
+	opacity: 0.25;
+	transition: opacity 60ms;
+	
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	margin: 2px;
 
-	.box {
-		background-color: white;
-		box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
-		border-radius: 3px;
+	&:hover {
+		opacity: 0.5;
+	}
+	&.active {
+		opacity: 1;
+	}
+
+}
+
+.button-small {
+	@extend .button;
+
+	transition: width 40ms, height 40ms, margin 40ms;
+
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	margin: 4px;
+
+	&:hover, &.active {
 		width: 30px;
 		height: 30px;
 		line-height: 30px;
-		margin: 2px;
-		text-align: center;
-
-		&.inactive {
-			opacity: 0.25;
-		}
-
+		margin: 0px;
 	}
+}
 
-	.button {
-		opacity: 0.25;
-		transition: opacity 60ms;
 
-		&:hover {
-			opacity: 0.5;
-		}
-		&.active {
-			opacity: 1;
-		}
+#paintToolButton {
+	transition: width 100ms;
 
-		&.small {
-			width: 22px;
-			height: 22px;
-			line-height: 22px;
-			margin: 4px;
-			transition: width 40ms, height 40ms, margin 40ms;
-
-			&:hover, &.active {
-				width: 30px;
-				height: 30px;
-				line-height: 30px;
-				margin: 0px;
-			}
+	.toolIcon {
+		width: 30px;
+		height: 30px;
+		background: {
+			size: 30px;
+			repeat: no-repeat;
+			image: url(../images/paintBrush.png);
 		}
 	}
 
-	#paintToolButton {
+	#brushStroke {
+		width: 0px;
+		height: 30px;
 		transition: width 100ms;
-
-		.toolIcon {
-			width: 30px;
-			height: 30px;
-			background-repeat: no-repeat;
-			background-size: 30px;
-			background-image: url(../images/paintBrush.png);
+		background: {
+			size: 30px;
+			repeat: no-repeat;
 		}
+
+		&.solid {
+			background-image: url(../images/solidStroke.png);
+		}
+
+		&.dashed {
+			background-image: url(../images/dashedStroke.png);
+		}
+
+	}
+
+	&:hover, &.active {
+		width: 60px;
 
 		#brushStroke {
-			width: 0px;
-			height: 30px;
-			transition: width 100ms;
-			background-repeat: no-repeat;
-			background-size: 30px;
+			width: 30px;
+		}
+	}
 
-			&.solid {
-				background-image: url(../images/solidStroke.png);
-			}
+}
 
-			&.dashed {
-				background-image: url(../images/dashedStroke.png);
-			}
+#eraseToolButton {
+	transition: width 100ms;
 
+	.toolIcon {
+		width: 30px;
+		height: 30px;
+		background: {
+			size: 30px;
+			image: url(../images/eraser.png);
+		}
+	}
+
+	#eraseType {
+		width: 0px;
+		height: 30px;
+		transition: width 100ms;
+		overflow: hidden;
+
+		&.all::before {
+			content: 'all';
 		}
 
-		&:hover, &.active {
-			width: 60px;
-
-			#brushStroke {
-				width: 30px;
-			}
+		&.color::before {
+			content: 'color';
 		}
 
 	}
 
-	#eraseToolButton {
-		transition: width 100ms;
-
-		.toolIcon {
-			width: 30px;
-			height: 30px;
-			background-size: 30px;
-			background-image: url(../images/eraser.png);
-		}
+	&:hover, &.active {
+		width: 70px;
 
 		#eraseType {
-			width: 0px;
-			height: 30px;
-			transition: width 100ms;
-			overflow: hidden;
-
-			&.all::before {
-				content: 'all';
-			}
-
-			&.color::before {
-				content: 'color';
-			}
-
-		}
-
-		&:hover, &.active {
-			width: 70px;
-
-			#eraseType {
-				width: 40px;
-			}
+			width: 40px;
 		}
 	}
-
 }

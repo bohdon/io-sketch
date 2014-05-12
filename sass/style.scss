@@ -1,11 +1,7 @@
 
 
-@import '_constants';
-
 * {
 	font-family: sans-serif;
-	margin: 0;
-	padding: 0;
 }
 
 body {
@@ -15,37 +11,49 @@ body {
 	justify-content: center;
 }
 
-#artbox {
+.box {
+	border-radius: 3px;
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+
+	&.disabled {
+		opacity: 0.25;
+	}
+}
+
+.iosketch {
+
+	@import 'constants';
+	@import 'toolbars';
+	@import 'buttons';
+
 	background-color: $canvas-bg-color;
+	border-radius: 5px;
 	width: 447px;
 	height: 494px;
-	border-radius: 5px;
-	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.15);
-	overflow: hidden;
 
 	display: flex;
 	flex-flow: row;
 
 	-webkit-user-select: none;
+
+
+	#artboxleft {
+		display: flex;
+		flex-flow: column;
+		flex-grow: 1;
+		flex-shrink: 0;
+		justify-content: space-between;
+	}
+
+	.artcanvas {
+		background-color: white;
+		width: 400px;
+		height: 400px;
+		margin: auto;
+		flex-shrink: 0;;
+	}
+
+
 }
 
-#artboxleft {
-	display: flex;
-	flex-flow: column;
-	flex-grow: 1;
-	flex-shrink: 0;
-	justify-content: space-between;
-}
-
-
-.artcanvas {
-	background-color: white;
-	width: 400px;
-	height: 400px;
-	margin: auto;
-	flex-shrink: 0;;
-}
-
-
-@import '_toolbars';
-@import '_buttons';

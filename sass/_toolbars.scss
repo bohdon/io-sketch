@@ -1,7 +1,9 @@
 
 .toolbar {
+
 	font-size: 11pt;
 	flex-shrink: 0;
+	transition: width 40ms, height 40ms, padding 40ms;
 
 	&.main {
 		background-color: $toolbar-bg-color;
