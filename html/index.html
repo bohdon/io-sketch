@@ -13,6 +13,7 @@
 <body>
 	<div class="iosketch">
 		<div class="toolbar-tools">
+			<div id="exportButton" class="button box" onclick="saveSVG()"></div>
 			<div id="paintToolButton" class="toolbar horz button box">
 				<div class="toolIcon"></div>
 				<div id="brushStroke" class="solid"></div>
@@ -32,6 +33,7 @@
 			<canvas id="canvas" class="box">
 		</div>
 	</div>
+	<input id="export_file" type="file" nwsaveas style="display:none" nwworkingdir=""/>
 
 </body>
 </html>

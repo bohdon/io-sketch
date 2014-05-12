@@ -1,5 +1,25 @@
 
 
+function saveSVG() {
+	saveFile('#export_file', paper.project.exportSVG({asString:true}));
+}
+
+function saveFile(name, data) {
+	var chooser = document.querySelector(name);
+	chooser.addEventListener("change", function(evt) {
+		console.log(this.value); // get your file name
+		var fs = require('fs');// save it now
+		fs.writeFile(this.value, data, function(err) {
+			if(err) {
+				alert("error"+err);
+			}
+		});
+	}, false);
+
+	chooser.click();
+}
+
+
 $(document).ready(function() {
 
 	var elems = {

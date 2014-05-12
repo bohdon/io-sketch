@@ -118,7 +118,12 @@ IOSketch.prototype.addUser = function(user) {
 	function getOrCreateLayer(name) {
 		var layer;
 		for (var i = 0; i < paper.project.layers.length; i++) {
+			if (paper.project.layers[i].name == name) {
+				// return already existing layer
+				return layer;
+			}
 			if (paper.project.layers[i].isEmpty() && !paper.project.layers[i].name) {
+				// use empty layers
 				layer = paper.project.layers[i];
 			}
 		}
