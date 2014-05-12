@@ -21,33 +21,70 @@ body {
   height: 100%;
   display: flex;
   flex-flow: row;
-  -webkit-user-select: none; }
+  -webkit-user-select: none;
+  /* Large */
+  /* Small */ }
   .iosketch .toolbar {
     font-size: 11pt;
-    flex-shrink: 0;
-    transition: width 40ms, height 40ms, padding 40ms; }
+    display: flex;
+    justify-content: center;
+    align-items: center; }
     .iosketch .toolbar.main {
       background-color: #f2f2f2;
       padding: 8px; }
-    .iosketch .toolbar.top {
-      border-bottom: 1px solid #dddddd; }
-    .iosketch .toolbar.bot {
-      border-top: 1px solid #dddddd; }
-    .iosketch .toolbar.left {
-      border-right: 1px solid #dddddd; }
-    .iosketch .toolbar.right {
-      border-left: 1px solid #dddddd; }
     .iosketch .toolbar.vert {
       width: 30px;
-      display: flex;
-      align-items: center;
-      flex-direction: column-reverse;
-      justify-content: center; }
+      flex-direction: column; }
     .iosketch .toolbar.horz {
-      height: 30px;
+      height: 30px; }
+    .toolbar-tools, .toolbar-colors, .toolbar-layers {
+      font-size: 11pt;
       display: flex;
+      justify-content: center;
       align-items: center;
-      justify-content: center; }
+      background-color: #f2f2f2;
+      padding: 8px;
+      position: fixed; }
+
+    .toolbar-tools, .toolbar-colors {
+      height: 30px;
+      left: 0;
+      right: 46px; }
+
+    .toolbar-layers {
+      width: 30px;
+      flex-direction: column;
+      border-left: 1px solid #dddddd;
+      top: 0;
+      right: 0;
+      bottom: 0; }
+
+/* Small */
+    .toolbar-tools {
+      border-top: 1px solid #dddddd;
+      border-bottom: none;
+      bottom: 0;
+      right: 46px; }
+
+    .toolbar-colors {
+      border-bottom: 1px solid #dddddd;
+      top: 0;
+      left: 0; }
+
+/* Large */
+    @media (min-width: 600px) {
+      .toolbar-tools, .toolbar-colors {
+        border-top: none;
+        border-bottom: 1px solid #dddddd;
+        top: 0; }
+
+      .toolbar-tools {
+        justify-content: flex-end;
+        right: 60%; }
+
+      .toolbar-colors {
+        justify-content: flex-start;
+        left: 40%; } }
   .iosketch .button, .iosketch .button-small {
     background-color: white;
     text-align: center;
@@ -123,16 +160,18 @@ body {
       width: 70px; }
       .iosketch #eraseToolButton.active #eraseType {
         width: 40px; }
-  .iosketch #artboxleft {
-    display: flex;
-    flex-flow: column;
-    flex-grow: 1;
-    justify-content: space-between; }
   .iosketch .canvasContainer {
     box-shadow: inset 0px 0px 30px rgba(0, 0, 0, 0.05);
     padding: 4px;
     overflow: hidden;
-    flex-grow: 1; }
+    position: absolute;
+    top: 46px;
+    bottom: 0px;
+    left: 0px;
+    right: 46px; }
+  @media (max-width: 600px) {
+    .iosketch .canvasContainer {
+      bottom: 46px; } }
   .iosketch canvas {
     background-color: white;
     margin: auto;

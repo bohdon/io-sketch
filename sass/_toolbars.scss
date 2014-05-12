@@ -1,39 +1,90 @@
 
 .toolbar {
 
-	font-size: 11pt;
-	flex-shrink: 0;
-	transition: width 40ms, height 40ms, padding 40ms;
+	@mixin toolbar {
+		font-size: 11pt;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	@mixin main {
+		background-color: $toolbar-bg-color;
+		padding: $toolbar-padding;
+	}
+
+	@mixin vert {
+		width: $toolbar-size;
+		flex-direction: column;
+	}
+	@mixin horz {
+		height: $toolbar-size;
+	}
+
+
+	@include toolbar;
 
 	&.main {
-		background-color: $toolbar-bg-color;
-		padding: 8px;
+		@include main;
 	}
-	&.top {
-		border-bottom: 1px solid $toolbar-border-color;
-	}
-	&.bot {
-		border-top: 1px solid $toolbar-border-color;
-	}
-	&.left {
-		border-right: 1px solid $toolbar-border-color;
-	}
-	&.right {
-		border-left: 1px solid $toolbar-border-color;
-	}
-
 	&.vert {
-		width: 30px;
-		display: flex;
-		align-items: center;
-		flex-direction: column-reverse;
-		justify-content: center;
+		@include vert;
 	}
 	&.horz {
-		height: 30px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		@include horz;
+	}
+
+	@at-root {
+
+		.toolbar-tools, .toolbar-colors, .toolbar-layers {
+			@include toolbar;
+			@include main;
+			position: fixed;
+		}
+		.toolbar-tools, .toolbar-colors {
+			@include horz;
+			left: 0;
+			right: $toolbar-size-total;
+		}
+		.toolbar-layers {
+			@include vert;
+			border-left: 1px solid $toolbar-border-color;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+
+		/* Small */
+		.toolbar-tools {
+			border-top: 1px solid $toolbar-border-color;
+			border-bottom: none;
+			bottom: 0;
+			right: $toolbar-size-total;
+		}
+		.toolbar-colors {
+			border-bottom: 1px solid $toolbar-border-color;
+			top: 0;
+			left: 0;
+		}
+
+		/* Large */
+		@media (min-width: 600px) {
+			.toolbar-tools, .toolbar-colors {
+				border-top: none;
+				border-bottom: 1px solid $toolbar-border-color;
+				top: 0;
+			}
+			.toolbar-tools {
+				justify-content: flex-end;
+				right: 60%;
+			}
+			.toolbar-colors {
+				justify-content: flex-start;
+				left: 40%;
+			}
+		}
+
+
 	}
 
 }

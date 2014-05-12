@@ -12,31 +12,25 @@
 </head>
 <body>
 	<div class="iosketch">
-		<div id="artboxleft">
-			<div class="toolbar main horz top">
-				<div id="brushColors" class="toolbar horz"></div>
+		<div class="toolbar-tools">
+			<div id="paintToolButton" class="toolbar horz button box">
+				<div class="toolIcon"></div>
+				<div id="brushStroke" class="solid"></div>
+				<div id="brushSize" hidden>0</div>
 			</div>
-			<div class="canvasContainer">
-				<canvas id="canvas" class="box">
+			<div id="fillToolButton" class="toolbar horz button box">
+				<div class="toolIcon"></div>
 			</div>
-			<div class="toolbar main horz bot">
-				<div class="toolbar horz">
-					<div id="paintToolButton" class="toolbar horz button box">
-						<div class="toolIcon"></div>
-						<div id="brushStroke" class="solid"></div>
-						<div id="brushSize" hidden>0</div>
-					</div>
-					<div id="fillToolButton" class="toolbar horz button box">
-						<div class="toolIcon"></div>
-					</div>
-					<div id="eraseToolButton" class="toolbar horz button box">
-						<div class="toolIcon"></div>
-						<div id="eraseType" class="all"></div>
-					</div>
-				</div>
+			<div id="eraseToolButton" class="toolbar horz button box">
+				<div class="toolIcon"></div>
+				<div id="eraseType" class="color"></div>
 			</div>
 		</div>
-		<div id="layers" class="toolbar main vert right"></div>
+		<div id="brushColors" class="toolbar-colors"></div>
+		<div id="layers" class="toolbar-layers"></div>
+		<div class="canvasContainer">
+			<canvas id="canvas" class="box">
+		</div>
 	</div>
 
 </body>

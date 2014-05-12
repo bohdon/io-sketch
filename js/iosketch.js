@@ -420,7 +420,7 @@ IOSketch.prototype.onKeyDown = function(event) {
 		this.paintBrush.brushStroke = 'dashed';
 	}
 	if (event.modifiers.shift) {
-		this.eraseBrush.eraseType = 'color';
+		this.eraseBrush.eraseType = 'all';
 	}
 }
 
@@ -429,7 +429,7 @@ IOSketch.prototype.onKeyUp = function(event) {
 		this.paintBrush.brushStroke = 'solid';
 	}
 	if (!event.modifiers.shift) {
-		this.eraseBrush.eraseType = 'all';
+		this.eraseBrush.eraseType = 'color';
 	}
 }
 
@@ -756,7 +756,7 @@ function EraserBrush(sketch) {
 
 	this.sketch = sketch;
 
-	this.eraseType = 'all';
+	this.eraseType = 'color';
 
 	this.tool = new paper.Tool();
 	this.tool.brush = this;
@@ -790,7 +790,7 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 	for (var i = children.length - 1; i >= 0; i--) {
 		if (children[i] != path) {
 			if (isIntersecting(path, children[i])) {
-				if (event.modifiers.shift && !hasFillColor(children[i], this.sketch.activeColor)) {
+				if (this.eraseType == 'color' && !hasFillColor(children[i], this.sketch.activeColor)) {
 					// dont erase, doesn't match the active color
 					continue;
 				}
@@ -816,7 +816,7 @@ EraserBrush.prototype.onMouseDown = function(event) {
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// erase
-			if (!event.modifiers.shift || hasFillColor(hitResult.item, this.sketch.activeColor)) {
+			if (this.eraseType != 'color' || hasFillColor(hitResult.item, this.sketch.activeColor)) {
 				if (hitResult.item.parent.className != 'Layer') {
 					hitResult.item.parent.remove();
 				} else {

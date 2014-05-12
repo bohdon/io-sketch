@@ -37,19 +37,23 @@ body {
 
 	-webkit-user-select: none;
 
-
-	#artboxleft {
-		display: flex;
-		flex-flow: column;
-		flex-grow: 1;
-		justify-content: space-between;
-	}
-
+	/* Large */
 	.canvasContainer {
 		box-shadow: inset 0px 0px 30px rgba(0, 0, 0, 0.05);
 		padding: 4px;
 		overflow: hidden;
-		flex-grow: 1;
+		position: absolute;
+		top: $toolbar-size-total;
+		bottom: 0px;
+		left: 0px;
+		right: $toolbar-size-total;
+	}
+
+	/* Small */
+	@media (max-width: 600px) {
+		.canvasContainer {
+			bottom: $toolbar-size-total;
+		}
 	}
 
 	canvas {
