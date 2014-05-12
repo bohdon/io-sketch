@@ -274,7 +274,7 @@ IOSketch.prototype.updateEraseTypeDisplay = function() {
 IOSketch.prototype.setupColorSwatches = function() {
 	// build color swatch elements
 	this.updateColorSwatches();
-	this.paintBrush.on('brushColorChange', this.updateActiveColorSwatch.bind(this));
+	this.on('activeColorChange', this.updateActiveColorSwatch.bind(this));
 };
 
 IOSketch.prototype.updateColorSwatches = function() {
@@ -299,7 +299,7 @@ IOSketch.prototype.updateActiveColorSwatch = function() {
 	for (var i = 0; i < swatches.length; i++) {
 		var s = swatches[i];
 		var swatchColor = new paper.Color(swatches[i].style.backgroundColor);
-		if (this.paintBrush.brushColor.equals(swatchColor)) {
+		if (this.activeColor.equals(swatchColor)) {
 			$(s).addClass('active');
 		} else {
 			$(s).removeClass('active');
@@ -309,14 +309,24 @@ IOSketch.prototype.updateActiveColorSwatch = function() {
 
 IOSketch.prototype.setBrushColorCallback = function(e) {
 	// set brush color to the clicked swatch's color
-	this.paintBrush.brushColor = e.target.style.backgroundColor;
+	this.activeColor = e.target.style.backgroundColor;
 };
+
+Object.defineProperty(IOSketch.prototype, 'activeColor', {
+	get: function activeColor() {
+		return this._activeColor;
+	},
+	set: function activeColor(value) {
+		this._activeColor = value;
+		this.emit('activeColorChange');
+	}
+});
 
 IOSketch.prototype.selectRelativeColor = function(delta) {
 	var paperColors = this.opts.colors.map(function(c){return new paper.Color(c)});
 	var index = -1;
 	for (var i = 0; i < paperColors.length; i++) {
-		if (paperColors[i].equals(this.paintBrush.brushColor)) {
+		if (paperColors[i].equals(this.activeColor)) {
 			index = i;
 			break;
 		}
@@ -327,7 +337,7 @@ IOSketch.prototype.selectRelativeColor = function(delta) {
 			index = paperColors.length - 1;
 		}
 		index %= paperColors.length;
-		this.paintBrush.brushColor = paperColors[index];
+		this.activeColor = paperColors[index];
 	}
 }
 
@@ -411,11 +421,10 @@ util.inherits(PaintBrush, events.EventEmitter);
 
 Object.defineProperty(PaintBrush.prototype, 'brushColor', {
 	get: function brushColor() {
-		return this._brushColor;
+		return this.sketch.activeColor;
 	},
 	set: function brushColor(color) {
-		this._brushColor = new paper.Color(color);
-		this.emit('brushColorChange');
+		this.sketch.activeColor = color;
 	}
 });
 
@@ -533,7 +542,7 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 	var shouldDraw = true;
 	this.tool.maxDistance = null;
 	if (this.brushStroke == 'dashed') {
-		this.dashDistance = 6 * this.brushMaxSize;
+		this.dashDistance = 4 * this.brushMaxSize;
 		this.tool.maxDistance = this.dashDistance / 2;
 		if (this.pathCore && this.dashDistance > 0) {
 			shouldDraw = this.pathCore.length % (this.dashDistance * 2.5) < this.dashDistance;
@@ -658,7 +667,7 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 	for (var i = children.length - 1; i >= 0; i--) {
 		if (children[i] != path) {
 			if (isIntersecting(path, children[i])) {
-				if (event.modifiers.shift && !hasFillColor(children[i], this.sketch.paintBrush.brushColor)) {
+				if (event.modifiers.shift && !hasFillColor(children[i], this.sketch.activeColor)) {
 					// dont erase, doesn't match the active color
 					continue;
 				}
@@ -684,7 +693,7 @@ EraserBrush.prototype.onMouseDown = function(event) {
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// erase
-			if (!event.modifiers.shift || hasFillColor(hitResult.item, this.sketch.paintBrush.brushColor)) {
+			if (!event.modifiers.shift || hasFillColor(hitResult.item, this.sketch.activeColor)) {
 				if (hitResult.item.parent.className != 'Layer') {
 					hitResult.item.parent.remove();
 				} else {
