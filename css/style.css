@@ -90,10 +90,18 @@ body {
         background-image: url(../images/solidStroke.png); }
       .iosketch #paintToolButton #brushStroke.dashed {
         background-image: url(../images/dashedStroke.png); }
-    .iosketch #paintToolButton:hover, .iosketch #paintToolButton.active {
+    .iosketch #paintToolButton.active {
       width: 60px; }
-      .iosketch #paintToolButton:hover #brushStroke, .iosketch #paintToolButton.active #brushStroke {
+      .iosketch #paintToolButton.active #brushStroke {
         width: 30px; }
+  .iosketch #fillToolButton {
+    transition: width 100ms; }
+    .iosketch #fillToolButton .toolIcon {
+      width: 30px;
+      height: 30px;
+      background-size: 30px;
+      background-repeat: no-repeat;
+      background-image: url(../images/fillBrush.png); }
   .iosketch #eraseToolButton {
     transition: width 100ms; }
     .iosketch #eraseToolButton .toolIcon {
@@ -102,6 +110,7 @@ body {
       background-size: 30px;
       background-image: url(../images/eraser.png); }
     .iosketch #eraseToolButton #eraseType {
+      font-size: 12px;
       width: 0px;
       height: 30px;
       transition: width 100ms;
@@ -110,9 +119,9 @@ body {
         content: 'all'; }
       .iosketch #eraseToolButton #eraseType.color::before {
         content: 'color'; }
-    .iosketch #eraseToolButton:hover, .iosketch #eraseToolButton.active {
+    .iosketch #eraseToolButton.active {
       width: 70px; }
-      .iosketch #eraseToolButton:hover #eraseType, .iosketch #eraseToolButton.active #eraseType {
+      .iosketch #eraseToolButton.active #eraseType {
         width: 40px; }
   .iosketch #artboxleft {
     display: flex;

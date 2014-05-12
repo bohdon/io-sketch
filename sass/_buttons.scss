@@ -71,11 +71,26 @@
 
 	}
 
-	&:hover, &.active {
+	&.active {
 		width: 60px;
 
 		#brushStroke {
 			width: 30px;
+		}
+	}
+
+}
+
+#fillToolButton {
+	transition: width 100ms;
+
+	.toolIcon {
+		width: 30px;
+		height: 30px;
+		background: {
+			size: 30px;
+			repeat: no-repeat;
+			image: url(../images/fillBrush.png);
 		}
 	}
 
@@ -94,6 +109,7 @@
 	}
 
 	#eraseType {
+		font-size: 12px;
 		width: 0px;
 		height: 30px;
 		transition: width 100ms;
@@ -109,7 +125,7 @@
 
 	}
 
-	&:hover, &.active {
+	&.active {
 		width: 70px;
 
 		#eraseType {

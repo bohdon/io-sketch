@@ -8,7 +8,7 @@ var iosketch = new function() {
 
 var sketches = {};
 
-var defaultColors = ['black', '#bbb', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
+var defaultColors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
 
 function lerp(a, b, t){
 	return a + (b - a) * t;
@@ -58,6 +58,8 @@ function IOSketch(id, elems, opts) {
 	this.paper.setup(this.elems.canvas);
 	this.paper.sketch = this;
 
+	this.activeColor = new paper.Color('black');
+
 	// activate and initialize brushes, layers
 	this.activate();
 	this.setupBrushes();
@@ -77,6 +79,12 @@ IOSketch.prototype.activate = function() {
 Object.defineProperty(IOSketch.prototype, "isActive", {
 	get: function isActive() {
 		return window.paper === this.paper;
+	}
+});
+
+Object.defineProperty(IOSketch.prototype, 'readyForDrawing', {
+	get: function readyForDrawing() {
+		return (!this.requireActiveUser || this.activeUser) && paper.project.activeLayer.visible;
 	}
 });
 
@@ -222,6 +230,7 @@ IOSketch.prototype.setupBrushes = function() {
 	var self = this;
 
 	self.paintBrush = new PaintBrush(self);
+	self.fillBrush = new FillBrush(self);
 	self.eraseBrush = new EraserBrush(self);
 
 	self.updateToolDisplay();
@@ -230,6 +239,9 @@ IOSketch.prototype.setupBrushes = function() {
 
 	self.elems.paintToolButton.addEventListener('click', function(){
 		self.paintBrush.activate();
+	});
+	self.elems.fillToolButton.addEventListener('click', function(){
+		self.fillBrush.activate();
 	});
 	self.elems.eraseToolButton.addEventListener('click', function(){
 		self.eraseBrush.activate();
@@ -247,6 +259,13 @@ IOSketch.prototype.updateToolDisplay = function() {
 		paint.addClass('active');
 	} else {
 		paint.removeClass('active');
+	}
+
+	var fill = $(this.elems.fillToolButton);
+	if (paper.tool == this.fillBrush.tool) {
+		fill.addClass('active');
+	} else {
+		fill.removeClass('active');
 	}
 
 	var erase = $(this.elems.eraseToolButton);
@@ -309,7 +328,7 @@ IOSketch.prototype.updateActiveColorSwatch = function() {
 
 IOSketch.prototype.setBrushColorCallback = function(e) {
 	// set brush color to the clicked swatch's color
-	this.activeColor = e.target.style.backgroundColor;
+	this.activeColor = new paper.Color(e.target.style.backgroundColor);
 };
 
 Object.defineProperty(IOSketch.prototype, 'activeColor', {
@@ -321,6 +340,15 @@ Object.defineProperty(IOSketch.prototype, 'activeColor', {
 		this.emit('activeColorChange');
 	}
 });
+
+IOSketch.prototype.pickColor = function(point) {
+	// attempt to color pick via hit test
+	var hitResult = paper.project.hitTest(point, {fill: true});
+	if (hitResult) {
+		// color pick
+		this.activeColor = hitResult.item.fillColor;
+	}
+}
 
 IOSketch.prototype.selectRelativeColor = function(delta) {
 	var paperColors = this.opts.colors.map(function(c){return new paper.Color(c)});
@@ -352,6 +380,8 @@ IOSketch.prototype.onKeyDown = function(event) {
 		this.paintBrush.activate();
 	} else if (event.key == 'e') {
 		this.eraseBrush.activate();
+	} else if (event.key == 'f') {
+		this.fillBrush.activate();
 
 	} else if (event.key == '[') {
 		this.paintBrush.decreaseBrushSize();
@@ -395,7 +425,6 @@ function PaintBrush(sketch) {
 	this.sketch = sketch;
 
 	this.brushStroke = 'solid';
-	this.brushColor = new paper.Color('black');
 	this.brushMaxSize = 2;
 	this.brushMinSizeScale = 0.1;
 	this.pressureSmoothing = 0.5;
@@ -419,19 +448,10 @@ function PaintBrush(sketch) {
 
 util.inherits(PaintBrush, events.EventEmitter);
 
-Object.defineProperty(PaintBrush.prototype, 'brushColor', {
-	get: function brushColor() {
-		return this.sketch.activeColor;
-	},
-	set: function brushColor(color) {
-		this.sketch.activeColor = color;
-	}
-});
-
 
 Object.defineProperty(PaintBrush.prototype, 'pressure', {
 	get: function pressure() {
-		return wacom.active ? this.smoothPressure : 1;
+		return wacom.active ? this.smoothPressure : 0.5;
 	}
 });
 
@@ -481,26 +501,17 @@ PaintBrush.prototype.colorIntersecting = function(event, path) {
 	for (var i = children.length - 1; i >= 0; i--) {
 		if (children[i] != path) {
 			if (isIntersecting(path, children[i])) {
-				children[i].fillColor = this.brushColor;
+				children[i].fillColor = this.sketch.activeColor;
 			}
 		}
 	};
 };
 
-PaintBrush.prototype.pickColor = function(event) {
-	// attempt to color pick via hit test
-	var hitResult = paper.project.hitTest(event.point, {fill: true});
-	if (hitResult) {
-		// color pick
-		this.brushColor = hitResult.item.fillColor;
-	}
-}
-
 PaintBrush.prototype.onMouseMove = function(event) {
 	// check for tool switch
-	if (wacom.isEraser) {
-		this.sketch.eraseBrush.activate();
-	}
+	// if (wacom.isEraser && false) {
+	// 	this.sketch.eraseBrush.activate();
+	// }
 };
 
 PaintBrush.prototype.onMouseDown = function(event) {
@@ -508,34 +519,29 @@ PaintBrush.prototype.onMouseDown = function(event) {
 	
 	// hit test for possible color pick
 	if (event.modifiers.option) {
-		this.pickColor(event);
+		this.sketch.pickColor(event.point);
 	} else if (event.modifiers.shift) {
 		// hit test for apply color
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// apply color
 			if (hitResult.item.parent.className != 'Layer') {
-				hitResult.item.parent.fillColor = this.brushColor;
+				hitResult.item.parent.fillColor = this.sketch.activeColor;
 			} else {
-				hitResult.item.fillColor = this.brushColor;
+				hitResult.item.fillColor = this.sketch.activeColor;
 			}
 		}
 	}
 };
 
 PaintBrush.prototype.onMouseDrag = function(event) {
-	if (this.sketch.requireActiveUser && !this.sketch.activeUser) {
+	if (!this.sketch.readyForDrawing) {
 		return;
 	}
 
 	// update smooth pressure
 	if (wacom.loaded) {
 		this.smoothPressure = lerp(this.smoothPressure, wacom.pressure, this.pressureAccel);
-	}
-
-	// check if layer is active
-	if (!paper.project.activeLayer.visible) {
-		return;
 	}
 
 	// check for dashing functionality
@@ -564,7 +570,7 @@ PaintBrush.prototype.onMouseDrag = function(event) {
 		} else if (shouldDraw) {
 			// start drawing path
 			this.path = new paper.Path();
-			this.path.fillColor = this.brushColor;
+			this.path.fillColor = this.sketch.activeColor;
 			this.path.add(event.lastPoint);
 
 			// group all newly created strokes
@@ -623,6 +629,101 @@ PaintBrush.prototype.closePath = function(event) {
 }
 
 
+//
+// Fill Brush, draws a basic path with a fill color
+//
+
+function FillBrush(sketch) {
+	events.EventEmitter.call(this);
+
+	this.sketch = sketch;
+
+	this.tool = new paper.Tool();
+	this.tool.brush = this;
+	this.tool.onMouseMove = this.onMouseMove.bind(this);
+	this.tool.onMouseDown = this.onMouseDown.bind(this);
+	this.tool.onMouseDrag = this.onMouseDrag.bind(this);
+	this.tool.onMouseUp = this.onMouseUp.bind(this);
+	this.tool.onKeyDown = this.sketch.onKeyDown.bind(this.sketch);
+	this.tool.onKeyUp = this.sketch.onKeyUp.bind(this.sketch);
+	this.activate = function() {
+		this.tool.activate();
+		this.sketch.toolChanged();
+	};
+}
+
+util.inherits(FillBrush, events.EventEmitter);
+
+
+FillBrush.prototype.onMouseMove = function(event) {
+	// check for tool switch
+	// if (wacom.isEraser && false) {
+	// 	this.sketch.eraseBrush.activate();
+	// }
+};
+
+FillBrush.prototype.onMouseDown = function(event) {
+	// hit test for possible color pick
+	if (event.modifiers.option) {
+		this.sketch.pickColor(event.point);
+	} else if (event.modifiers.shift) {
+		// hit test for apply color
+		var hitResult = paper.project.hitTest(event.point, {fill: true});
+		if (hitResult) {
+			// apply color
+			if (hitResult.item.parent.className != 'Layer') {
+				hitResult.item.parent.fillColor = this.sketch.activeColor;
+			} else {
+				hitResult.item.fillColor = this.sketch.activeColor;
+			}
+		}
+	}
+};
+
+FillBrush.prototype.onMouseDrag = function(event) {
+	if (!this.sketch.readyForDrawing) {
+		return;
+	}
+
+	// create a new path if necessary
+	if (!this.path) {
+		if (event.modifiers.option) {
+			// color picked
+		} else if (event.modifiers.shift) {
+			// TODO: make this behave unique to this tool,
+			// 		 e.g. colors everything inside the fill
+			// dont draw, just color existing objects
+			var path = new paper.Path();
+			path.add(event.lastPoint);
+			path.add(event.point);
+			this.sketch.paintBrush.colorIntersecting(event, path);
+			path.remove();
+
+		} else {
+			// start drawing path
+			this.path = new paper.Path();
+			this.path.fillColor = this.sketch.activeColor;
+			this.path.opacity = 0.25;
+			this.path.add(event.lastPoint);
+		}
+	}
+
+	if (this.path) {
+		this.path.add(event.point);
+		this.path.smooth();
+	}
+};
+
+FillBrush.prototype.onMouseUp = function(event) {
+	if (this.path) {
+		this.path.closed = true;
+		this.path.smooth();
+		this.path.simplify();
+		this.path = null;
+	}
+};
+
+
 
 //
 // Eraser Brush, handles hit testing paths and deleting them
@@ -679,15 +780,15 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 
 EraserBrush.prototype.onMouseMove = function(event) {
 	// check for tool switch
-	if (wacom.active && !wacom.isEraser) {
-		this.sketch.paintBrush.activate();
-	}
+	// if (wacom.active && !wacom.isEraser) {
+	// 	this.sketch.paintBrush.activate();
+	// }
 };
 
 EraserBrush.prototype.onMouseDown = function(event) {
 	if (event.modifiers.option) {
 		// color pick
-		this.sketch.paintBrush.pickColor(event);
+		this.sketch.pickColor(event.point);
 	} else {
 		// hit test for erase
 		var hitResult = paper.project.hitTest(event.point, {fill: true});
@@ -705,6 +806,10 @@ EraserBrush.prototype.onMouseDown = function(event) {
 };
 
 EraserBrush.prototype.onMouseDrag = function(event) {
+	if (!this.sketch.readyForDrawing) {
+		return;
+	}
+
 	if (event.modifiers.option) {
 		return;
 	}

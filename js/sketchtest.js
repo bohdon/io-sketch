@@ -9,6 +9,7 @@ $(document).ready(function() {
 		paintToolButton: $('#paintToolButton')[0],
 		brushSize: $('#brushSize')[0],
 		brushStroke: $('#brushStroke')[0],
+		fillToolButton: $('#fillToolButton')[0],
 		eraseToolButton: $('#eraseToolButton')[0],
 		eraseType: $('#eraseType')[0],
 	}
