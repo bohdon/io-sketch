@@ -9,6 +9,11 @@ var iosketch = new function() {
 var sketches = {};
 
 var defaultColors = ['black', 'white', '#d00', 'orange', '#fe0', '#6a0', '#7ae', '#24a', '#728'];
+var defaultOpts = {
+	colors: defaultColors,
+	ratio: 16 / 9,
+	res: 600,
+}
 
 function lerp(a, b, t){
 	return a + (b - a) * t;
@@ -46,10 +51,7 @@ function IOSketch(id, elems, opts) {
 	sketches[id] = this;
 
 	this.elems = elems ? elems : {};
-	this.opts = opts ? opts : {};
-	if (!this.opts.colors) {
-		this.opts.colors = defaultColors;
-	}
+	this.opts = opts ? opts : jQuery.extend(true, {}, defaultOpts);
 	this.users = {};
 	this.requireActiveUser = true;
 
@@ -58,10 +60,12 @@ function IOSketch(id, elems, opts) {
 	this.paper.setup(this.elems.canvas);
 	this.paper.sketch = this;
 
+	this.baseSize = new paper.Size(this.opts.res * this.opts.ratio, this.opts.res);
 	this.activeColor = new paper.Color('black');
 
 	// activate and initialize brushes, layers
 	this.activate();
+	this.setupCanvas();
 	this.setupBrushes();
 	this.setupColorSwatches();
 
@@ -223,6 +227,24 @@ IOSketch.prototype.setLayerHilitedCallback = function(hilite, e) {
 };
 
 
+IOSketch.prototype.setupCanvas = function() {
+	this.updateCanvasSize();
+	window.addEventListener('resize', this.updateCanvasSize.bind(this));
+}
+
+IOSketch.prototype.updateCanvasSize = function() {
+	this.activate();
+	var c = this.elems.canvas,
+		parent = $(this.elems.canvas.parentNode),
+		bound = new paper.Size(parent.width(), parent.height()),
+		boundRatio = bound.width / bound.height;
+	var scale = this.opts.ratio > boundRatio ? bound.width / this.baseSize.width : bound.height / this.baseSize.height;
+	paper.project.view.viewSize = this.baseSize.multiply(scale);
+	paper.project.view.setZoom(scale);
+	paper.project.view.setCenter(0, 0);
+	c.style.left = (bound.width - c.width) / 2;
+	c.style.top = (bound.height - c.height) / 2;
+}
 
 
 

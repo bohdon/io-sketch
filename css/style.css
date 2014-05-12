@@ -5,7 +5,8 @@ body {
   background-color: #ddd;
   display: flex;
   align-items: center;
-  justify-content: center; }
+  justify-content: center;
+  margin: 0px; }
 
 .box {
   border-radius: 3px;
@@ -15,10 +16,9 @@ body {
     opacity: 0.25; }
 
 .iosketch {
-  background-color: #fafafa;
-  border-radius: 5px;
-  width: 447px;
-  height: 494px;
+  background-color: #eeeeee;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-flow: row;
   -webkit-user-select: none; }
@@ -127,11 +127,13 @@ body {
     display: flex;
     flex-flow: column;
     flex-grow: 1;
-    flex-shrink: 0;
     justify-content: space-between; }
-  .iosketch .artcanvas {
+  .iosketch .canvasContainer {
+    box-shadow: inset 0px 0px 30px rgba(0, 0, 0, 0.05);
+    padding: 4px;
+    overflow: hidden;
+    flex-grow: 1; }
+  .iosketch canvas {
     background-color: white;
-    width: 400px;
-    height: 400px;
     margin: auto;
-    flex-shrink: 0; }
+    position: relative; }
