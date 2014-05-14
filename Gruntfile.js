@@ -2,7 +2,7 @@ module.exports = function(grunt) {
 
   // Project configuration.
   grunt.initConfig({
-    pkg: grunt.file.readJSON('./src/package.json'),
+    pkg: grunt.file.readJSON('package.json'),
     sass: {
       dist: {
         files: {
@@ -19,23 +19,48 @@ module.exports = function(grunt) {
         ]
       }
     },
+    exec: {
+      clear_build: {
+        command: 'rm -rf webkitbuilds/releases'
+      },
+      open_build: {
+        command: 'open -n webkitbuilds/releases/<%= pkg.name %>/mac/<%= pkg.name %>.app'
+      }
+    },
     nodewebkit: {
       options: {
-          build_dir: './webkitbuilds',
-          mac: true,
-          win: true,
-          linux32: false,
-          linux64: false
+        build_dir: './webkitbuilds',
       },
-      src: [
-        './src/**/*',
-        './node_modules/**/*'
-      ]
+      mac: {
+        options: {
+          mac: true,
+          win: false
+        },
+        src: [
+          './package.json',
+          './src/**/*',
+          './node_modules/**/*'
+        ]
+      },
+      win: {
+        options: {
+          mac: false,
+          win: true
+        },
+        src: [
+          './package.json',
+          './src/**/*',
+          './node_modules/**/*'
+        ]
+      }
     },
   });
 
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-node-webkit-builder');
+  grunt.loadNpmTasks('grunt-exec');
+
+  grunt.registerTask('build', ['exec:clear_build', 'nodewebkit:mac', 'exec:open_build']);
 
 };

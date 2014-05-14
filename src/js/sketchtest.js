@@ -35,7 +35,7 @@ $(document).ready(function() {
 	}
 
 	mysketch = new iosketch.IOSketch('mysketch', elems, {
-		server: process.env.SKETCH_PORT;
+		server: process.env.SKETCH_PORT
 	});
 	mysketch.activeUser = process.env.USER;
 
