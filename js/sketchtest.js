@@ -34,7 +34,9 @@ $(document).ready(function() {
 		eraseType: $('#eraseType')[0],
 	}
 
-	mysketch = new iosketch.IOSketch('mysketch', elems, {server: 'http://localhost:3000'});
+	mysketch = new iosketch.IOSketch('mysketch', elems, {
+		server: process.env.SKETCH_PORT;
+	});
 	mysketch.activeUser = process.env.USER;
 
 	mysketch.addUser({
