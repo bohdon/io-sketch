@@ -2,14 +2,20 @@
   "name": "IOSketch",
   "version": "0.1.0",
   "main": "./html/index.html",
+  "single-instance": false,
   "window": {
     "toolbar": true
   },
   "webkit": {
     "plugin": true
   },
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "socket.io-client": "~0.9.16"
+  },
   "devDependencies": {
     "grunt": "~0.4.4",
-    "grunt-contrib-sass": "~0.7.3"
+    "grunt-contrib-sass": "~0.7.3",
+    "grunt-contrib-jshint": "~0.10.0"
   }
 }

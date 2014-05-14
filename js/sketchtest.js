@@ -34,7 +34,7 @@ $(document).ready(function() {
 		eraseType: $('#eraseType')[0],
 	}
 
-	mysketch = new iosketch.IOSketch('mysketch', elems);
+	mysketch = new iosketch.IOSketch('mysketch', elems, {server: 'http://localhost:3000'});
 	mysketch.activeUser = 'bsayre';
 
 	mysketch.addUser({

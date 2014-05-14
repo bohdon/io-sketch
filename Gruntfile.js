@@ -9,15 +9,19 @@ module.exports = function(grunt) {
           'css/style.css': 'sass/style.scss'
         }
       }
+    },
+    jshint: {
+      all: {
+        src: [
+          'js/iosketch.js',
+          'js/wacom.js',
+          'js/sketchtest.js'
+        ]
+      }
     }
   });
 
-  // Load the plugin that provides the "uglify" task.
-  //grunt.loadNpmTasks('grunt-contrib-uglify');
-
-  // Default task(s).
-  //grunt.registerTask('default', ['uglify']);
-
   grunt.loadNpmTasks('grunt-contrib-sass');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 
 };
