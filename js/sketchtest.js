@@ -35,7 +35,7 @@ $(document).ready(function() {
 	}
 
 	mysketch = new iosketch.IOSketch('mysketch', elems, {server: 'http://localhost:3000'});
-	mysketch.activeUser = 'bsayre';
+	mysketch.activeUser = process.env.USER;
 
 	mysketch.addUser({
 		username:'bsayre',

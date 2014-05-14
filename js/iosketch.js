@@ -102,7 +102,7 @@ IOSketch.prototype.connectToServer = function(address) {
 	if (!this.socket) {
 		this.socket = io.connect(address);
 		this.socket.on('users', this.io_updateUsers.bind(this));
-		this.socket.on('new object', this.io_newObject.bind(this));
+		this.socket.on('action', this.io_action.bind(this));
 	} else {
 		console.warn("already connected to server");
 	}
@@ -113,22 +113,61 @@ IOSketch.prototype.io_updateUsers = function(data) {
 	console.log('users', data);
 };
 
-IOSketch.prototype.io_newObject = function(data) {
+IOSketch.prototype.io_action = function(data) {
+	if (data.type == 'add') {
+		this.io_addObject(data);
+	} else if (data.type == 'remove') {
+		this.io_removeObject(data);
+	}
+	paper.project.view.update();
+};
+
+IOSketch.prototype.io_addObject = function(data) {
 	this.activate();
 	var layer = this.getUserLayer(data.username);
 	if (layer) {
-		layer.importJSON(data.obj);
-		paper.project.view.update();
+		// import object
+		var obj = layer.importJSON(data.obj);
+		// update index to match receiver
+		// NOTE: inserting at index like this is not reliable
+		//		 if multiple users are editing the same layer
+		// TODO: update with a more reliable tagging system for objects
+		layer.insertChild(data.index, obj);
 	} else {
 		console.warn('Missing layer for user: ' + data.username);
 	}
 };
 
-IOSketch.prototype.io_send_newObject = function(obj) {
-	this.socket.emit('new object', {
+IOSketch.prototype.io_removeObject = function(data) {
+	this.activate();
+	var layer = this.getUserLayer(data.username);
+	if (layer) {
+		layer.removeChildren(data.index, data.index + 1);
+	} else {
+		console.warn('Missing layer for user: ' + data.username);
+	}
+};
+
+IOSketch.prototype.io_send_addObject = function(obj) {
+	this.socket.emit('action', {
+		type: 'add',
 		username: this.activeUser,
+		index: obj.index,
 		obj: obj.toJSON()
 	});
+};
+
+IOSketch.prototype.io_send_removeObject = function(obj) {
+	this.socket.emit('action', {
+		type: 'remove',
+		username: this.activeUser,
+		index: obj.index,
+	});
+};
+
+IOSketch.prototype.remove = function(obj) {
+	this.io_send_removeObject(obj);
+	obj.remove();
 };
 
 
@@ -686,7 +725,7 @@ PaintBrush.prototype.onMouseUp = function(event) {
 	this.closePath(event);
 	if (this.pathGroup) {
 		// send path group
-		this.sketch.io_send_newObject(this.pathGroup);
+		this.sketch.io_send_addObject(this.pathGroup);
 		this.pathGroup = null;
 	}
 	if (this.pathCore) {
@@ -797,6 +836,7 @@ FillBrush.prototype.onMouseUp = function(event) {
 		this.path.closed = true;
 		this.path.smooth();
 		this.path.simplify();
+		this.sketch.io_send_addObject(this.path);
 		this.path = null;
 	}
 };
@@ -850,7 +890,7 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 					// dont erase, doesn't match the active color
 					continue;
 				}
-				children[i].remove();
+				this.sketch.remove(children[i]);
 			}
 		}
 	}
@@ -874,9 +914,9 @@ EraserBrush.prototype.onMouseDown = function(event) {
 			// erase
 			if (this.eraseType != 'color' || hasFillColor(hitResult.item, this.sketch.activeColor)) {
 				if (hitResult.item.parent.className != 'Layer') {
-					hitResult.item.parent.remove();
+					this.sketch.remove(hitResult.item.parent);
 				} else {
-					hitResult.item.remove();
+					this.sketch.remove(hitResult.item);
 				}
 			}
 		}
