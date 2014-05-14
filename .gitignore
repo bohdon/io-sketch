@@ -1,5 +1,6 @@
 node-webkit.app
 node_modules
+webkitbuilds
 nwsnapshot
 credits.html
 .DS_Store
