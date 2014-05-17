@@ -360,8 +360,8 @@ IOSketch.prototype.updateCanvasSize = function() {
 	paper.project.view.viewSize = this.baseSize.multiply(scale);
 	paper.project.view.setZoom(scale);
 	paper.project.view.setCenter(0, 0);
-	c.style.left = (bound.width - c.width) / 2;
-	c.style.top = (bound.height - c.height) / 2;
+	c.style.left = (bound.width - (c.width/window.devicePixelRatio)) / 2;
+	c.style.top = (bound.height - (c.height/window.devicePixelRatio)) / 2;
 }
 
 
