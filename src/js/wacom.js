@@ -4,9 +4,9 @@
  */
 
 
-$(document).ready(function() {
-	loadWacomPlugin();
-})
+$(function() {
+	addWacomPlugin();
+});
 
 
 wacom = {
@@ -34,7 +34,7 @@ wacom = {
 }
 
 
-function loadWacomPlugin() {
+function addWacomPlugin() {
 	if (!wacom.plugin) {
 		wtPlugin = document.createElement('embed');
 		wtPlugin.id = 'wtPlugin';

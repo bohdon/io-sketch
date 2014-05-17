@@ -113,6 +113,8 @@ body {
       opacity: 0.5; }
     .iosketch .button.active, .iosketch .active.button-small {
       opacity: 1; }
+  .iosketch .button.layerButton.activeUser, .iosketch .layerButton.activeUser.button-small {
+    border: 1px solid #444; }
   .iosketch .button-small {
     transition: width 40ms, height 40ms, margin 40ms;
     width: 22px;

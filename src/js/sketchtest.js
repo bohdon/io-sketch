@@ -35,22 +35,18 @@ $(document).ready(function() {
 	}
 
 	var mysketch = new iosketch.IOSketch('mysketch', elems, {
-		server: process.env.SKETCH_PORT
+		server: process.env.SKETCH_PORT,
+		room: process.env.SKETCH_ROOM
 	});
-	mysketch.activeUser = process.env.USER;
 
-	mysketch.addUser({
-		username:'bsayre',
-		fullname:'Bohdon Sayre',
-	});
-	mysketch.addUser({
-		username: 'jcannon',
-		fullname: 'John Cannon',
-	});
-	mysketch.addUser({
-		username: 'bchapman',
-		fullname: 'Brennan Chapman',
-	});
+	var thisUser = {
+		username: process.env.SKETCH_USER || process.env.USER,
+		fullname: process.env.SKETCH_NAME,
+		email: process.env.SKETCH_EMAIL
+	};
+
+	mysketch.addUser(thisUser);
+	mysketch.activeUser = thisUser.username;
 
 });
 

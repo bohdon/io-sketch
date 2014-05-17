@@ -70,13 +70,8 @@ function IOSketch(id, elems, opts) {
 	this.setupBrushes();
 	this.setupColorSwatches();
 
-	console.log(this.opts);
 	// connect to server
-	if (this.opts.server) {
-		this.connectToServer(this.opts.server);
-	} else {
-		console.warn('No io-sketch server address was provided');
-	}
+	this.connectToServer();
 
 }
 
@@ -102,12 +97,16 @@ Object.defineProperty(IOSketch.prototype, 'readyForDrawing', {
 
 
 IOSketch.prototype.connectToServer = function(address) {
+	if (!this.opts.server) {
+		console.warn('No io-sketch server address was provided');
+		return;
+	}
 	var self = this;
 	if (!self.socket) {
 		console.log('connecting to ' + address);
 		self.socket = io.connect(address);
-		console.log(self.socket.socket.connected);
 		if (self.socket.socket.connected) {
+			console.log('connected');
 			$('#status').attr('state', 'connected');
 		}
 		self.socket.on('connecting', function() {
@@ -115,6 +114,7 @@ IOSketch.prototype.connectToServer = function(address) {
 		})
 		self.socket.on('connect', function() {
 			$('#status').attr('state', 'connected');
+			self.joinRoom();
 		});
 		self.socket.on('connect_failed', function() {
 			$('#status').attr('state', 'disconnected');
@@ -122,12 +122,23 @@ IOSketch.prototype.connectToServer = function(address) {
 		self.socket.on('disconnect', function() {
 			$('#status').attr('state', 'disconnected');
 		});
+
 		self.socket.on('users', self.io_updateUsers.bind(self));
 		self.socket.on('action', self.io_action.bind(self));
+		
 	} else {
 		console.warn("already connected to server");
 	}
 };
+
+IOSketch.prototype.joinRoom = function(room) {
+	if (room) {
+		this.opts.room = room;
+	}
+	if (this.opts.room) {
+		self.socket.emit('joinRoom', {id:room});
+	}
+}
 
 
 IOSketch.prototype.io_updateUsers = function(data) {
@@ -197,9 +208,10 @@ IOSketch.prototype.remove = function(obj) {
 
 
 IOSketch.prototype.addUser = function(user) {
-	this.activate();
-	var layer = paper.project.activeLayer;
 	if (!this.users[user.username]) {
+		this.activate();
+		// keep track of active layer
+		var layer = paper.project.activeLayer;
 		// create new user
 		var u = {};
 		for (var key in user) {
@@ -216,8 +228,9 @@ IOSketch.prototype.addUser = function(user) {
 		};
 		this.users[u.username] = u;
 		this.updateLayerButtons();
+		// restore active layer
+		layer.activate();
 	}
-	layer.activate();
 };
 
 IOSketch.prototype.getOrCreateUserLayer = function(username) {
@@ -261,6 +274,8 @@ Object.defineProperty(IOSketch.prototype, 'activeUser', {
 IOSketch.prototype.updateActiveLayer = function() {
 	if (this.users[this.activeUser]) {
 		this.users[this.activeUser].activate();
+		$('.layerButton').removeClass('activeUser');
+		$('.layerButton[user=' + this.activeUser + ']').addClass('activeUser');
 	}
 };
 
@@ -352,7 +367,7 @@ IOSketch.prototype.setupCanvas = function() {
 
 IOSketch.prototype.updateCanvasSize = function() {
 	this.activate();
-	var c = this.elems.canvas,
+	var c = $(this.elems.canvas),
 		parent = $(this.elems.canvas.parentNode),
 		bound = new paper.Size(parent.width(), parent.height()),
 		boundRatio = bound.width / bound.height;
@@ -360,8 +375,8 @@ IOSketch.prototype.updateCanvasSize = function() {
 	paper.project.view.viewSize = this.baseSize.multiply(scale);
 	paper.project.view.setZoom(scale);
 	paper.project.view.setCenter(0, 0);
-	c.style.left = (bound.width - (c.width/window.devicePixelRatio)) / 2;
-	c.style.top = (bound.height - (c.height/window.devicePixelRatio)) / 2;
+	c[0].style.left = (bound.width - c.width()) / 2;
+	c[0].style.top = (bound.height - c.height()) / 2;
 }
 
 
