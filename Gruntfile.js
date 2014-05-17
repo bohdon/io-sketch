@@ -8,8 +8,16 @@ module.exports = function(grunt) {
     express: {
       all: {
         options: {
+          port: 4000,
           server: 'app.js'
         }
+      }
+    },
+    jshint: {
+      all: {
+        src: [
+          'app.js'
+        ]
       }
     },
     watch: {
@@ -28,6 +36,7 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-contrib-sass');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-express');
 
