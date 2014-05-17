@@ -12,6 +12,29 @@ body {
 	margin: 0px;
 }
 
+#status {
+	margin: 11px;
+	width: 6px;
+	height: 6px;
+	border-radius: 10px;
+
+
+	&[state='disconnected'] {
+		background-color: #f20;
+		border: 1px solid red;
+	}
+
+	&[state='connecting'] {
+		background-color: rgba(0, 255, 0, 0.1);
+		border: 1px solid green;
+	}
+
+	&[state='connected'] {
+		background-color: green;
+		border: 1px solid green;
+	}
+}
+
 .box {
 	border-radius: 3px;
 	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);

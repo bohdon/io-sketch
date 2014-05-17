@@ -13,7 +13,9 @@
 <body>
 	<div class="iosketch">
 		<div class="toolbar-tools">
-			<div id="exportButton" class="button box" onclick="saveSVG()"></div>
+			<div id="status" state="disconnected"></div>
+			<div id="exportButton" class="button box" onclick="saveSVG()">svg</div>
+			<div class="button box" onclick="savePNG()">png</div>
 			<div id="paintToolButton" class="toolbar horz button box">
 				<div class="toolIcon"></div>
 				<div id="brushStroke" class="solid"></div>

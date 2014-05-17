@@ -34,7 +34,7 @@ $(document).ready(function() {
 		eraseType: $('#eraseType')[0],
 	}
 
-	mysketch = new iosketch.IOSketch('mysketch', elems, {
+	var mysketch = new iosketch.IOSketch('mysketch', elems, {
 		server: process.env.SKETCH_PORT
 	});
 	mysketch.activeUser = process.env.USER;

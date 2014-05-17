@@ -70,9 +70,12 @@ function IOSketch(id, elems, opts) {
 	this.setupBrushes();
 	this.setupColorSwatches();
 
+	console.log(this.opts);
 	// connect to server
 	if (this.opts.server) {
 		this.connectToServer(this.opts.server);
+	} else {
+		console.warn('No io-sketch server address was provided');
 	}
 
 }
@@ -99,10 +102,28 @@ Object.defineProperty(IOSketch.prototype, 'readyForDrawing', {
 
 
 IOSketch.prototype.connectToServer = function(address) {
-	if (!this.socket) {
-		this.socket = io.connect(address);
-		this.socket.on('users', this.io_updateUsers.bind(this));
-		this.socket.on('action', this.io_action.bind(this));
+	var self = this;
+	if (!self.socket) {
+		console.log('connecting to ' + address);
+		self.socket = io.connect(address);
+		console.log(self.socket.socket.connected);
+		if (self.socket.socket.connected) {
+			$('#status').attr('state', 'connected');
+		}
+		self.socket.on('connecting', function() {
+			$('#status').attr('state', 'connecting');
+		})
+		self.socket.on('connect', function() {
+			$('#status').attr('state', 'connected');
+		});
+		self.socket.on('connect_failed', function() {
+			$('#status').attr('state', 'disconnected');
+		});
+		self.socket.on('disconnect', function() {
+			$('#status').attr('state', 'disconnected');
+		});
+		self.socket.on('users', self.io_updateUsers.bind(self));
+		self.socket.on('action', self.io_action.bind(self));
 	} else {
 		console.warn("already connected to server");
 	}
@@ -130,7 +151,7 @@ IOSketch.prototype.io_addObject = function(data) {
 		var obj = layer.importJSON(data.obj);
 		// update index to match receiver
 		// NOTE: inserting at index like this is not reliable
-		//		 if multiple users are editing the same layer
+		//       if multiple users are editing the same layer
 		// TODO: update with a more reliable tagging system for objects
 		layer.insertChild(data.index, obj);
 	} else {
@@ -149,20 +170,24 @@ IOSketch.prototype.io_removeObject = function(data) {
 };
 
 IOSketch.prototype.io_send_addObject = function(obj) {
-	this.socket.emit('action', {
-		type: 'add',
-		username: this.activeUser,
-		index: obj.index,
-		obj: obj.toJSON()
-	});
+	if (this.socket) {
+		this.socket.emit('action', {
+			type: 'add',
+			username: this.activeUser,
+			index: obj.index,
+			obj: obj.toJSON()
+		});
+	}
 };
 
 IOSketch.prototype.io_send_removeObject = function(obj) {
-	this.socket.emit('action', {
-		type: 'remove',
-		username: this.activeUser,
-		index: obj.index,
-	});
+	if (this.socket) {
+		this.socket.emit('action', {
+			type: 'remove',
+			username: this.activeUser,
+			index: obj.index,
+		});
+	}
 };
 
 IOSketch.prototype.remove = function(obj) {
@@ -625,7 +650,7 @@ PaintBrush.prototype.colorIntersecting = function(event, path) {
 PaintBrush.prototype.onMouseMove = function(event) {
 	// check for tool switch
 	// if (wacom.isEraser && false) {
-	// 	this.sketch.eraseBrush.activate();
+	//  this.sketch.eraseBrush.activate();
 	// }
 };
 
@@ -775,7 +800,7 @@ util.inherits(FillBrush, events.EventEmitter);
 FillBrush.prototype.onMouseMove = function(event) {
 	// check for tool switch
 	// if (wacom.isEraser && false) {
-	// 	this.sketch.eraseBrush.activate();
+	//  this.sketch.eraseBrush.activate();
 	// }
 };
 
@@ -808,7 +833,7 @@ FillBrush.prototype.onMouseDrag = function(event) {
 			// color picked
 		} else if (event.modifiers.shift) {
 			// TODO: make this behave unique to this tool,
-			// 		 e.g. colors everything inside the fill
+			//       e.g. colors everything inside the fill
 			// dont draw, just color existing objects
 			var path = new paper.Path();
 			path.add(event.lastPoint);
@@ -899,7 +924,7 @@ EraserBrush.prototype.deleteIntersecting = function(event, path) {
 EraserBrush.prototype.onMouseMove = function(event) {
 	// check for tool switch
 	// if (wacom.active && !wacom.isEraser) {
-	// 	this.sketch.paintBrush.activate();
+	//  this.sketch.paintBrush.activate();
 	// }
 };
 
@@ -940,7 +965,7 @@ EraserBrush.prototype.onMouseDrag = function(event) {
 };
 
 EraserBrush.prototype.onMouseUp = function(event) {
-};	
+};  
 
 
 

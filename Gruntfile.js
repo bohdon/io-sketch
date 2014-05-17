@@ -25,6 +25,9 @@ module.exports = function(grunt) {
       },
       open_build: {
         command: 'open -n webkitbuilds/releases/<%= pkg.name %>/mac/<%= pkg.name %>.app'
+      },
+      test: {
+        command: 'open -n node-webkit.app'
       }
     },
     nodewebkit: {
@@ -61,6 +64,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-node-webkit-builder');
   grunt.loadNpmTasks('grunt-exec');
 
-  grunt.registerTask('build', ['exec:clear_build', 'nodewebkit:mac', 'exec:open_build']);
+  grunt.registerTask('build', ['sass', 'exec:clear_build', 'nodewebkit:mac', 'exec:open_build']);
+  grunt.registerTask('default', ['sass', 'exec:test']);
 
 };
