@@ -125,7 +125,7 @@ IOSketch.prototype.connectToServer = function(address) {
 
 		self.socket.on('users', self.io_updateUsers.bind(self));
 		self.socket.on('action', self.io_action.bind(self));
-		
+
 	} else {
 		console.warn("already connected to server");
 	}
@@ -361,8 +361,37 @@ IOSketch.prototype.setLayerHilitedCallback = function(hilite, e) {
 
 
 IOSketch.prototype.setupCanvas = function() {
-	this.updateCanvasSize();
-	window.addEventListener('resize', this.updateCanvasSize.bind(this));
+	var self = this;
+	self.updateCanvasSize();
+	window.addEventListener('resize', self.updateCanvasSize.bind(self));
+
+	function onDocumentDrag(event) {
+		event.preventDefault();
+	}
+
+	function onDocumentDrop(event) {
+		event.preventDefault();
+
+		var file = event.dataTransfer.files[0];
+		var reader = new FileReader();
+
+		reader.onload = function(event) {
+			var image = document.createElement('img');
+			image.onload = function() {
+				self.activate();
+				raster = new paper.Raster(image);
+				raster.fitBounds(paper.project.view.bounds);
+				paper.project.activeLayer.insertChild(0, raster);
+				paper.project.view.update();
+			};
+			image.src = event.target.result;
+		};
+		reader.readAsDataURL(file);
+	}
+
+	document.addEventListener('drop', onDocumentDrop);
+	document.addEventListener('dragover', onDocumentDrag);
+	document.addEventListener('dragleave', onDocumentDrag);
 }
 
 IOSketch.prototype.updateCanvasSize = function() {
@@ -564,6 +593,26 @@ IOSketch.prototype.onKeyUp = function(event) {
 	if (!event.modifiers.shift) {
 		this.eraseBrush.eraseType = 'color';
 	}
+}
+
+IOSketch.prototype.saveFile = function(name, data) {
+	var chooser = document.querySelector(name);
+	chooser.addEventListener("change", function(evt) {
+		console.log(this.value); // get your file name
+		var fs = require('fs');// save it now
+		fs.writeFile(this.value, data, function(err) {
+			if(err) {
+				alert("error"+err);
+			}
+		});
+	}, false);
+
+	chooser.click();
+}
+
+IOSketch.prototype.saveSVG = function() {
+	this.activate();
+	this.saveFile('#export_file', paper.project.exportSVG({asString:true}));
 }
 
 
