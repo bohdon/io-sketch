@@ -9,7 +9,7 @@ $(function() {
 });
 
 
-wacom = {
+var wacom = {
 	get plugin() { return document.embeds.wtPlugin; },
 	get version() { return this.plugin.penAPI.version; },
 	get loaded() { return (this.plugin && this.plugin.version !== undefined); },
@@ -31,7 +31,7 @@ wacom = {
 	get tiltY() { return this.plugin.penAPI.tiltY; },
 	get rotationDeg() { return this.plugin.penAPI.rotationDeg; },
 	get rotationRad() { return this.plugin.penAPI.rotationRad; },
-}
+};
 
 
 function addWacomPlugin() {

@@ -14,10 +14,11 @@ $(document).ready(function() {
 		eraseType: $('#eraseType')[0],
 	}
 
-	var mysketch = new iosketch.IOSketch('mysketch', elems, {
-		server: process.env.SKETCH_PORT,
-		room: process.env.SKETCH_ROOM
-	});
+	var mysketch = new iosketch.IOSketch('mysketch', elems);
+
+	var server = process.env.SKETCH_PORT,
+		room = process.env.SKETCH_ROOM;
+	var sketchsocket = new iosketch.IOSketchSocket(mysketch, server, room);
 
 	var thisUser = {
 		username: process.env.SKETCH_USER || process.env.USER,

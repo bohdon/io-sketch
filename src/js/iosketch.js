@@ -1,11 +1,12 @@
+
+
+var iosketch = new function() {
 "use strict";
 
 var io = require('socket.io-client');
 var util = require('util');
 var events = require('events');
 
-
-var iosketch = new function() {
 
 var sketches = {};
 
@@ -94,65 +95,6 @@ Object.defineProperty(IOSketch.prototype, 'readyForDrawing', {
 		return (!this.requireActiveUser || this.activeUser) && paper.project.activeLayer.visible;
 	}
 });
-
-
-IOSketch.prototype.connectToServer = function(address) {
-	if (!this.opts.server) {
-		console.warn('No io-sketch server address was provided');
-		return;
-	}
-	var self = this;
-	if (!self.socket) {
-		console.log('connecting to ' + address);
-		self.socket = io.connect(address);
-		if (self.socket.socket.connected) {
-			console.log('connected');
-			$('#status').attr('state', 'connected');
-		}
-		self.socket.on('connecting', function() {
-			$('#status').attr('state', 'connecting');
-		})
-		self.socket.on('connect', function() {
-			$('#status').attr('state', 'connected');
-			self.joinRoom();
-		});
-		self.socket.on('connect_failed', function() {
-			$('#status').attr('state', 'disconnected');
-		});
-		self.socket.on('disconnect', function() {
-			$('#status').attr('state', 'disconnected');
-		});
-
-		self.socket.on('users', self.io_updateUsers.bind(self));
-		self.socket.on('action', self.io_action.bind(self));
-
-	} else {
-		console.warn("already connected to server");
-	}
-};
-
-IOSketch.prototype.joinRoom = function(room) {
-	if (room) {
-		this.opts.room = room;
-	}
-	if (this.opts.room) {
-		self.socket.emit('joinRoom', {id:room});
-	}
-}
-
-
-IOSketch.prototype.io_updateUsers = function(data) {
-	console.log('users', data);
-};
-
-IOSketch.prototype.io_action = function(data) {
-	if (data.type == 'add') {
-		this.io_addObject(data);
-	} else if (data.type == 'remove') {
-		this.io_removeObject(data);
-	}
-	paper.project.view.update();
-};
 
 IOSketch.prototype.io_addObject = function(data) {
 	this.activate();
@@ -309,7 +251,7 @@ IOSketch.prototype.updateLayerButtons = function() {
 	// TODO: remove old layers
 
 	// TODO: sort layer elements
-}
+};
 
 IOSketch.prototype.setLayerActiveCallback = function(e, activate) {
 	this.activate();
@@ -392,7 +334,7 @@ IOSketch.prototype.setupCanvas = function() {
 	document.addEventListener('drop', onDocumentDrop);
 	document.addEventListener('dragover', onDocumentDrag);
 	document.addEventListener('dragleave', onDocumentDrag);
-}
+};
 
 IOSketch.prototype.updateCanvasSize = function() {
 	this.activate();
@@ -406,7 +348,7 @@ IOSketch.prototype.updateCanvasSize = function() {
 	paper.project.view.setCenter(0, 0);
 	c[0].style.left = (bound.width - c.width()) / 2;
 	c[0].style.top = (bound.height - c.height()) / 2;
-}
+};
 
 
 
@@ -532,7 +474,7 @@ IOSketch.prototype.pickColor = function(point) {
 		// color pick
 		this.activeColor = hitResult.item.fillColor;
 	}
-}
+};
 
 IOSketch.prototype.selectRelativeColor = function(delta) {
 	var paperColors = this.opts.colors.map(function(c){ return new paper.Color(c); });
@@ -551,11 +493,11 @@ IOSketch.prototype.selectRelativeColor = function(delta) {
 		index %= paperColors.length;
 		this.activeColor = paperColors[index];
 	}
-}
+};
 
 IOSketch.prototype.toolChanged = function(tool) {
 	this.emit('toolChange', tool);
-}
+};
 
 
 IOSketch.prototype.onKeyDown = function(event) {
@@ -584,7 +526,7 @@ IOSketch.prototype.onKeyDown = function(event) {
 	if (event.modifiers.shift) {
 		this.eraseBrush.eraseType = 'all';
 	}
-}
+};
 
 IOSketch.prototype.onKeyUp = function(event) {
 	if (!event.modifiers.control) {
@@ -593,7 +535,7 @@ IOSketch.prototype.onKeyUp = function(event) {
 	if (!event.modifiers.shift) {
 		this.eraseBrush.eraseType = 'color';
 	}
-}
+};
 
 IOSketch.prototype.saveFile = function(name, data) {
 	var chooser = document.querySelector(name);
@@ -608,12 +550,79 @@ IOSketch.prototype.saveFile = function(name, data) {
 	}, false);
 
 	chooser.click();
-}
+};
 
 IOSketch.prototype.saveSVG = function() {
 	this.activate();
 	this.saveFile('#export_file', paper.project.exportSVG({asString:true}));
+};
+
+
+
+// IOSketchSocket handles all talking to the server,
+// including creating and deleting objects, keeping
+// users and layers up to date, etc
+
+function IOSketchSocket(sketch, address, room) {
+	this.sketch = sketch;
+	this.address = address;
+	this.room = room;
+
+	console.log('connecting to ' + address);
+	socket = io.connect(address);
+
+	// basic connection events
+
+	socket.on('connecting', function() {
+		$('#status').attr('state', 'connecting');
+	});
+
+	socket.on('connect', function() {
+		$('#status').attr('state', 'connected');
+		socket.emit('joinRoom', {id: room});
+	});
+
+	socket.on('connect_failed', function() {
+		$('#status').attr('state', 'disconnected');
+	});
+
+	socket.on('disconnect', function() {
+		$('#status').attr('state', 'disconnected');
+	});
+
+
+	// users and room management
+
+	socket.on('users_in_room', function() {
+		console.log('');
+	});
+
+	socket.on('user_joined', function() {
+	});
+
+	socket.on('users', this.io_updateUsers.bind(this));
+	socket.on('action', this.io_action.bind(this));
+
+	this.socket = socket;
 }
+
+IOSketchSocket.prototype.disconnect = function() {
+	this.socket.disconnect();
+};
+
+IOSketchSocket.prototype.loadUsers = function() {
+	console.log('users', data);
+};
+
+IOSketchSocket.prototype.io_action = function(data) {
+	if (data.type == 'add') {
+		this.io_addObject(data);
+	} else if (data.type == 'remove') {
+		this.io_removeObject(data);
+	}
+	paper.project.view.update();
+};
+
 
 
 
@@ -708,7 +717,7 @@ PaintBrush.prototype.colorIntersecting = function(event, path) {
 				children[i].fillColor = this.sketch.activeColor;
 			}
 		}
-	};
+	}
 };
 
 PaintBrush.prototype.onMouseMove = function(event) {
@@ -832,7 +841,7 @@ PaintBrush.prototype.closePath = function(event) {
 		this.path.simplify();
 		this.path = null;
 	}
-}
+};
 
 
 //
@@ -1035,14 +1044,15 @@ EraserBrush.prototype.onMouseUp = function(event) {
 
 return {
 	IOSketch: IOSketch,
+	IOSketchSocket: IOSketchSocket,
 	PaintBrush: PaintBrush,
 	EraseBrush: EraserBrush,
 	sketches: sketches,
 	defaultColors: defaultColors,
-}
-
-
 };
+
+
+}();
 
 
 
