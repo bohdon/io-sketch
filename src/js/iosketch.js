@@ -100,7 +100,7 @@ Object.defineProperty(IOSketch.prototype, 'readyForDrawing', {
 	}
 });
 
-IOSketch.prototype.io_addObject = function(data) {
+IOSketch.prototype.addObject = function(data) {
 	this.activate();
 	var layer = this.getUserLayer(data.username);
 	if (layer) {
@@ -114,9 +114,10 @@ IOSketch.prototype.io_addObject = function(data) {
 	} else {
 		console.warn('Missing layer for user: ' + data.username);
 	}
+	paper.project.view.update();
 };
 
-IOSketch.prototype.io_removeObject = function(data) {
+IOSketch.prototype.removeObject = function(data) {
 	this.activate();
 	var layer = this.getUserLayer(data.username);
 	if (layer) {
@@ -124,6 +125,7 @@ IOSketch.prototype.io_removeObject = function(data) {
 	} else {
 		console.warn('Missing layer for user: ' + data.username);
 	}
+	paper.project.view.update();
 };
 
 IOSketch.prototype.io_send_addObject = function(obj) {
@@ -155,38 +157,64 @@ IOSketch.prototype.remove = function(obj) {
 
 IOSketch.prototype.addUser = function(user) {
 	if (!this.users[user.username]) {
-		this.activate();
 		// keep track of active layer
 		var layer = paper.project.activeLayer;
 		// create new user
-		var u = {};
-		for (var key in user) {
-			u[key] = user[key];
-		}
-		// get some user info automatically
-		if (!u.initials && u.fullname) {
-			u.initials = getInitials(u.fullname);
-		}
-		// add layer functionality
-		u.layer = this.getOrCreateUserLayer(user.username);
-		u.activate = function() {
-			this.layer.activate();
-		};
-		u.simplified = function() {
-			return {
-				username: this.username,
-				fullname: this.fullname,
-				email: this.email,
-			};
+		var u = {
+			username: user.username,
+			layer: this.getOrCreateUserLayer(user.username),
+			activate: function() {
+				this.layer.activate();
+			},
+			simplified: function() {
+				return {
+					username: this.username,
+					fullname: this.fullname,
+					email: this.email,
+				};
+			}
 		};
 		this.users[u.username] = u;
-		this.updateLayerButtons();
 		// restore active layer
 		layer.activate();
+	}
+	var u = this.users[user.username];
+	// update user information
+	for (var key in user) {
+		if (key != 'username') {
+			u[key] = user[key];
+		}
+	}
+	// update initials if possible
+	if (!u.initials && u.fullname) {
+		u.initials = getInitials(u.fullname);
+	}
+	// set user to online
+	u.online = true;
+	// update display
+	this.updateLayerButtons();
+};
+
+IOSketch.prototype.removeUser = function(user, clear) {
+	if (this.users[user.username]) {
+		// if layer is empty, fully delete the user regardless of clear flag
+		var user = this.users[user.username];
+		if (user.layer.isEmpty()) {
+			// clear = true;
+		}
+
+		if (clear) {
+			console.log("DELETE USER", user);
+		} else {
+			// just set user status to not-online
+			user.online = false;
+		}
+		this.updateLayerButtons();
 	}
 };
 
 IOSketch.prototype.getOrCreateUserLayer = function(username) {
+	this.activate();
 	var layer = this.getUserLayer(username);
 	if (!layer) {
 		// try to use existing empty layer
@@ -270,8 +298,12 @@ IOSketch.prototype.updateLayerButtons = function() {
 	for (var i = 0; i < children.length; i++) {
 		var elem = children[i],
 			user = this.users[children[i].getAttribute('user')];
+		$(elem).attr('online', user.online);
 		if (user.avatar && urlExists(user.avatar)) {
-			elem.style.backgroundImage = 'url(' + user.avatar + ')';
+			var url = 'url(' + user.avatar + ')';
+			if (elem.style.backgroundImage != url) {
+				elem.style.backgroundImage = url;
+			}
 			elem.innerHTML = '';
 		} else {
 			elem.style.backgroundImage = null;
@@ -601,7 +633,6 @@ function IOSketchSocket(sketch, address, room) {
 	$('#roomId').html(room);
 	var statusIcon = $('#statusBar');
 
-	console.log('connecting to ' + address);
 	var socket = io.connect(address);
 
 	// basic connection events
@@ -617,11 +648,9 @@ function IOSketchSocket(sketch, address, room) {
 			user: self.sketch.activeUser.simplified()
 		});
 
-		if (self.room) {
-			socket.emit('join_room', {
-				room: self.room
-			});
-		}
+		socket.emit('join_room', {
+			room: self.room
+		});
 	});
 
 	socket.on('connect_failed', function() {
@@ -630,17 +659,29 @@ function IOSketchSocket(sketch, address, room) {
 
 	socket.on('disconnect', function() {
 		statusIcon.attr('state', 'disconnected');
+		for (var i = 0; i < self.sketch.users.length; i++) {
+			self.sketch.users[i].online = false;
+		};
+		self.sketch.updateLayerButtons();
 	});
 
 
 	// users and room management
 
+	socket.on('login', function(data) {
+		self.sketch.activeUser.online = true;
+		self.sketch.updateLayerButtons();
+	});
+
+	socket.on('login_failed', function(data) {
+		alert('failed to login: ' + data.err);
+	});
+
 	socket.on('join_room_failed', function(data) {
-		console.log('join_room_failed', data);
+		alert('failed to join room: ' + data.err);
 	});
 
 	socket.on('user_info', function(data) {
-		console.log('user info', data.user);
 		// update user info for the given user,
 		// should be the active user
 		var user = self.sketch.users[data.user.username];
@@ -653,20 +694,23 @@ function IOSketchSocket(sketch, address, room) {
 	});
 
 	socket.on('user_joined', function(data) {
-		console.log('user joined', data);
+		self.sketch.addUser(data.user);
 	});
 
 	socket.on('user_left', function(data) {
-		console.log('user left', data);
+		self.sketch.removeUser(data.user, false);
 	});
 
 	socket.on('users_in_room', function(data) {
-		console.log('received list of users', data);
+		for (var i = 0; i < data.users.length; i++) {
+			self.sketch.addUser(data.users[i]);
+		};
 	});
 
-	socket.on('action', this.parseAction.bind(this));
+	socket.on('action', this.parseAction.bind(self));
 
 	this.socket = socket;
+	sketch.socket = socket;
 }
 
 IOSketchSocket.prototype.parseAction = function(data) {

@@ -17,9 +17,11 @@ $(document).ready(function() {
 	var mysketch = new iosketch.IOSketch('mysketch', elems);
 
 	var server = process.env.SKETCH_PORT,
-		room = process.env.SKETCH_ROOM || 'room1';
+		room = process.env.SKETCH_ROOM || 'mainRoom';
 	var sketchsocket = new iosketch.IOSketchSocket(mysketch, server, room);
 
+	console.log(process.env.SKETCH_USER);
+	console.log(process.env.SKETCH_USER || process.env.USER);
 	var thisUser = {
 		username: process.env.SKETCH_USER || process.env.USER,
 		fullname: process.env.SKETCH_NAME,

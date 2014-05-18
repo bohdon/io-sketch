@@ -66,9 +66,8 @@ body {
 		position: relative;
 		top: $toolbar-size-total;
 		height: 40px;
-		margin: 6px;
+		margin: 10px;
 		font-size: 8pt;
-		opacity: 0.5;
 		
 		div {
 			display: inline-block;
@@ -91,18 +90,18 @@ body {
 		}
 
 		&[state='connecting'] {
-			color: green;
+			color: $status-green;
 			#statusIcon {
-				background-color: rgba(0, 255, 0, 0.1);
-				border: 1px solid green;
+				background-color: rgba(127, 197, 67, 0.1);
+				border: 1px solid $status-green;
 			}
 		}
 
 		&[state='connected'] {
-			color: green;
+			color: $status-green;
 			#statusIcon {
-				background-color: green;
-				border: 1px solid green;
+				background-color: $status-green;
+				border: 1px solid $status-green;
 			}
 		}
 	}

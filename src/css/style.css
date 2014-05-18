@@ -89,7 +89,7 @@ body {
     background-color: white;
     text-align: center;
     opacity: 0.25;
-    transition: opacity 60ms;
+    transition: opacity 100ms;
     width: 30px;
     height: 30px;
     line-height: 30px;
@@ -99,11 +99,33 @@ body {
     .iosketch .button.active, .iosketch .active.button-small {
       opacity: 1; }
     .iosketch .button.layerButton, .iosketch .layerButton.button-small {
-      background-size: contain; }
+      -webkit-transform: translateX(3px);
+      background-size: contain;
+      position: relative;
+      overflow: visible; }
       .iosketch .button.layerButton.activeUser, .iosketch .layerButton.activeUser.button-small {
-        border: 1px solid #444; }
+        margin-top: 6px;
+        margin-bottom: 6px; }
+        .iosketch .button.layerButton.activeUser::before, .iosketch .layerButton.activeUser.button-small::before {
+          content: '';
+          position: absolute;
+          width: 5px;
+          top: 8;
+          bottom: 8;
+          right: -7;
+          border-radius: 6;
+          background-color: rgba(0, 0, 0, 0.35); }
+      .iosketch .button.layerButton[online=true]::after, .iosketch .layerButton[online=true].button-small::after {
+        content: '';
+        background-color: #7fc543;
+        width: 3px;
+        border-radius: 2px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -8; }
   .iosketch .button-small {
-    transition: width 40ms, height 40ms, margin 40ms;
+    transition: opacity 100ms, width 40ms, height 40ms, margin 40ms;
     width: 22px;
     height: 22px;
     line-height: 22px;
@@ -114,7 +136,7 @@ body {
       line-height: 30px;
       margin: 0px; }
   .iosketch #paintToolButton {
-    transition: width 100ms; }
+    transition: opacity 100ms, width 100ms; }
     .iosketch #paintToolButton .toolIcon {
       width: 30px;
       height: 30px;
@@ -136,7 +158,7 @@ body {
       .iosketch #paintToolButton.active #brushStroke {
         width: 30px; }
   .iosketch #fillToolButton {
-    transition: width 100ms; }
+    transition: opacity 100ms, width 100ms; }
     .iosketch #fillToolButton .toolIcon {
       width: 30px;
       height: 30px;
@@ -144,7 +166,7 @@ body {
       background-repeat: no-repeat;
       background-image: url(../images/fillBrush.png); }
   .iosketch #eraseToolButton {
-    transition: width 100ms; }
+    transition: opacity 100ms, width 100ms; }
     .iosketch #eraseToolButton .toolIcon {
       width: 30px;
       height: 30px;
@@ -184,9 +206,8 @@ body {
     position: relative;
     top: 46px;
     height: 40px;
-    margin: 6px;
-    font-size: 8pt;
-    opacity: 0.5; }
+    margin: 10px;
+    font-size: 8pt; }
     .iosketch #statusBar div {
       display: inline-block; }
     .iosketch #statusBar #statusIcon {
@@ -201,12 +222,12 @@ body {
         background-color: #f20;
         border: 1px solid red; }
     .iosketch #statusBar[state='connecting'] {
-      color: green; }
+      color: #7fc543; }
       .iosketch #statusBar[state='connecting'] #statusIcon {
-        background-color: rgba(0, 255, 0, 0.1);
-        border: 1px solid green; }
+        background-color: rgba(127, 197, 67, 0.1);
+        border: 1px solid #7fc543; }
     .iosketch #statusBar[state='connected'] {
-      color: green; }
+      color: #7fc543; }
       .iosketch #statusBar[state='connected'] #statusIcon {
-        background-color: green;
-        border: 1px solid green; }
+        background-color: #7fc543;
+        border: 1px solid #7fc543; }

@@ -4,7 +4,7 @@
 	background-color: white;
 	text-align: center;
 	opacity: 0.25;
-	transition: opacity 60ms;
+	transition: opacity 100ms;
 	
 	width: 30px;
 	height: 30px;
@@ -19,9 +19,36 @@
 	}
 
 	&.layerButton {
+		-webkit-transform: translateX(3px);
 		background-size: contain;
+		position: relative;
+		overflow: visible;
+
 		&.activeUser {
-			border: 1px solid #444;
+			margin-top: 6px;
+			margin-bottom: 6px;
+
+			&::before {
+				content: '';
+				position: absolute;
+				width: 5px;
+				top: 8;
+				bottom: 8;
+				right: -7;
+				border-radius: 6;
+				background-color: rgba(0, 0, 0, 0.35);
+			}
+		}
+
+		&[online=true]::after {
+			content: '';
+			background-color: $status-green;
+			width: 3px;
+			border-radius: 2px;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: -8;
 		}
 	}
 	
@@ -32,7 +59,7 @@
 .button-small {
 	@extend .button;
 
-	transition: width 40ms, height 40ms, margin 40ms;
+	transition: opacity 100ms, width 40ms, height 40ms, margin 40ms;
 
 	width: 22px;
 	height: 22px;
@@ -49,7 +76,7 @@
 
 
 #paintToolButton {
-	transition: width 100ms;
+	transition: opacity 100ms, width 100ms;
 
 	.toolIcon {
 		width: 30px;
@@ -91,7 +118,7 @@
 }
 
 #fillToolButton {
-	transition: width 100ms;
+	transition: opacity 100ms, width 100ms;
 
 	.toolIcon {
 		width: 30px;
@@ -106,7 +133,7 @@
 }
 
 #eraseToolButton {
-	transition: width 100ms;
+	transition: opacity 100ms, width 100ms;
 
 	.toolIcon {
 		width: 30px;
