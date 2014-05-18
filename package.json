@@ -4,7 +4,9 @@
   "main": "./src/html/index.html",
   "single-instance": false,
   "window": {
-    "toolbar": true
+    "toolbar": true,
+    "width": 630,
+    "height": 424
   },
   "webkit": {
     "plugin": true

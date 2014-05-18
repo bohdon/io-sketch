@@ -8,12 +8,11 @@
 	<script type="text/javascript" src="../js/paper-full.js"></script>
 	<script type="text/javascript" src="../js/wacom.js"></script>
 	<script type="text/javascript" src="../js/iosketch.js"></script>
-	<script type="text/javascript" src="../js/sketchtest.js"></script>
+	<script type="text/javascript" src="../js/main.js"></script>
 </head>
 <body>
 	<div class="iosketch">
 		<div class="toolbar-tools">
-			<div id="status" state="disconnected"></div>
 			<div id="exportButton" class="button box" onclick="saveSVG()">svg</div>
 			<div class="button box" onclick="savePNG()">png</div>
 			<div id="paintToolButton" class="toolbar horz button box">
@@ -32,7 +31,11 @@
 		<div id="brushColors" class="toolbar-colors"></div>
 		<div id="layers" class="toolbar-layers"></div>
 		<div class="canvasContainer">
-			<canvas id="canvas" class="box">
+			<canvas id="canvas" class="box"></canvas>
+		</div>
+		<div id="statusBar">
+			<span id="serverAddress"></span><div id="statusIcon" state="disconnected"></div>
+			<br/><span id="roomId"></span>
 		</div>
 	</div>
 	<input id="export_file" type="file" nwsaveas style="display:none" nwworkingdir=""/>

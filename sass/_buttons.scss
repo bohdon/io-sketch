@@ -18,11 +18,15 @@
 		opacity: 1;
 	}
 
+	&.layerButton {
+		background-size: contain;
+		&.activeUser {
+			border: 1px solid #444;
+		}
+	}
+	
 }
 
-.button.layerButton.activeUser {
-	border: 1px solid #444;
-}
 
 
 .button-small {

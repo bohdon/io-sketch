@@ -17,7 +17,7 @@ $(document).ready(function() {
 	var mysketch = new iosketch.IOSketch('mysketch', elems);
 
 	var server = process.env.SKETCH_PORT,
-		room = process.env.SKETCH_ROOM;
+		room = process.env.SKETCH_ROOM || 'room1';
 	var sketchsocket = new iosketch.IOSketchSocket(mysketch, server, room);
 
 	var thisUser = {
@@ -27,7 +27,7 @@ $(document).ready(function() {
 	};
 
 	mysketch.addUser(thisUser);
-	mysketch.activeUser = thisUser.username;
+	mysketch.activeUser = thisUser;
 
 });
 

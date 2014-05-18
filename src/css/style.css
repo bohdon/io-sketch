@@ -8,21 +8,6 @@ body {
   justify-content: center;
   margin: 0px; }
 
-#status {
-  margin: 11px;
-  width: 6px;
-  height: 6px;
-  border-radius: 10px; }
-  #status[state='disconnected'] {
-    background-color: #f20;
-    border: 1px solid red; }
-  #status[state='connecting'] {
-    background-color: rgba(0, 255, 0, 0.1);
-    border: 1px solid green; }
-  #status[state='connected'] {
-    background-color: green;
-    border: 1px solid green; }
-
 .box {
   border-radius: 3px;
   box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
@@ -87,7 +72,7 @@ body {
       left: 0; }
 
 /* Large */
-    @media (min-width: 600px) {
+    @media (min-width: 701px) {
       .toolbar-tools, .toolbar-colors {
         border-top: none;
         border-bottom: 1px solid #dddddd;
@@ -113,8 +98,10 @@ body {
       opacity: 0.5; }
     .iosketch .button.active, .iosketch .active.button-small {
       opacity: 1; }
-  .iosketch .button.layerButton.activeUser, .iosketch .layerButton.activeUser.button-small {
-    border: 1px solid #444; }
+    .iosketch .button.layerButton, .iosketch .layerButton.button-small {
+      background-size: contain; }
+      .iosketch .button.layerButton.activeUser, .iosketch .layerButton.activeUser.button-small {
+        border: 1px solid #444; }
   .iosketch .button-small {
     transition: width 40ms, height 40ms, margin 40ms;
     width: 22px;
@@ -186,10 +173,40 @@ body {
     bottom: 0px;
     left: 0px;
     right: 46px; }
-  @media (max-width: 600px) {
+  @media (max-width: 700px) {
     .iosketch .canvasContainer {
       bottom: 46px; } }
   .iosketch canvas {
     background-color: white;
     margin: auto;
     position: relative; }
+  .iosketch #statusBar {
+    position: relative;
+    top: 46px;
+    height: 40px;
+    margin: 6px;
+    font-size: 8pt;
+    opacity: 0.5; }
+    .iosketch #statusBar div {
+      display: inline-block; }
+    .iosketch #statusBar #statusIcon {
+      width: 4px;
+      height: 4px;
+      margin: 1px;
+      margin-left: 4px;
+      border-radius: 10px; }
+    .iosketch #statusBar[state='disconnected'] {
+      color: #f20; }
+      .iosketch #statusBar[state='disconnected'] #statusIcon {
+        background-color: #f20;
+        border: 1px solid red; }
+    .iosketch #statusBar[state='connecting'] {
+      color: green; }
+      .iosketch #statusBar[state='connecting'] #statusIcon {
+        background-color: rgba(0, 255, 0, 0.1);
+        border: 1px solid green; }
+    .iosketch #statusBar[state='connected'] {
+      color: green; }
+      .iosketch #statusBar[state='connected'] #statusIcon {
+        background-color: green;
+        border: 1px solid green; }

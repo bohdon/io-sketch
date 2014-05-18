@@ -45,6 +45,13 @@ function hasFillColor(item, color) {
 	return false;
 }
 
+function urlExists(url) {
+	var http = new XMLHttpRequest();
+	http.open('HEAD', url, false);
+	http.send();
+	return http.status != 404;
+}
+
 function IOSketch(id, elems, opts) {
 	events.EventEmitter.call(this);
 
@@ -70,9 +77,6 @@ function IOSketch(id, elems, opts) {
 	this.setupCanvas();
 	this.setupBrushes();
 	this.setupColorSwatches();
-
-	// connect to server
-	this.connectToServer();
 
 }
 
@@ -126,7 +130,7 @@ IOSketch.prototype.io_send_addObject = function(obj) {
 	if (this.socket) {
 		this.socket.emit('action', {
 			type: 'add',
-			username: this.activeUser,
+			username: this.activeUsername,
 			index: obj.index,
 			obj: obj.toJSON()
 		});
@@ -137,7 +141,7 @@ IOSketch.prototype.io_send_removeObject = function(obj) {
 	if (this.socket) {
 		this.socket.emit('action', {
 			type: 'remove',
-			username: this.activeUser,
+			username: this.activeUsername,
 			index: obj.index,
 		});
 	}
@@ -167,6 +171,13 @@ IOSketch.prototype.addUser = function(user) {
 		u.layer = this.getOrCreateUserLayer(user.username);
 		u.activate = function() {
 			this.layer.activate();
+		};
+		u.simplified = function() {
+			return {
+				username: this.username,
+				fullname: this.fullname,
+				email: this.email,
+			};
 		};
 		this.users[u.username] = u;
 		this.updateLayerButtons();
@@ -205,19 +216,28 @@ IOSketch.prototype.getUserLayer = function(username) {
 
 Object.defineProperty(IOSketch.prototype, 'activeUser', {
 	get: function activeUser() {
-		return this._activeUser;
+		return this.users[this.activeUsername];
 	},
-	set: function activeUser(username) {
-		this._activeUser = username;
+	set: function activeUser(user) {
+		this.activeUsername = user.username;
+	}
+});
+
+Object.defineProperty(IOSketch.prototype, 'activeUsername', {
+	get: function activeUsername() {
+		return this._activeUsername;
+	},
+	set: function activeUsername(username) {
+		this._activeUsername = username;
 		this.updateActiveLayer();
 	}
 });
 
 IOSketch.prototype.updateActiveLayer = function() {
-	if (this.users[this.activeUser]) {
-		this.users[this.activeUser].activate();
+	if (this.activeUser) {
+		this.activeUser.activate();
 		$('.layerButton').removeClass('activeUser');
-		$('.layerButton[user=' + this.activeUser + ']').addClass('activeUser');
+		$('.layerButton[user=' + this.activeUsername + ']').addClass('activeUser');
 	}
 };
 
@@ -233,24 +253,31 @@ IOSketch.prototype.updateLayerButtons = function() {
 		var user = this.users[username];
 		if (child_ids.indexOf(username) < 0) {
 			// add new child element
-			var elem = document.createElement(user.image ? 'img' : 'div');
+			var elem = document.createElement('div');
 			elem.addEventListener('click', this.setLayerActiveCallback.bind(this));
 			elem.addEventListener('mouseover', this.setLayerHilitedCallback.bind(this, true));
 			elem.addEventListener('mouseout', this.setLayerHilitedCallback.bind(this, false));
-			if (user.image) {
-				elem.src = user.image;
-			} else {
-				elem.innerHTML = user.initials;
-			}
 			$(elem).attr({
 				user: username,
 			}).addClass("box button active layerButton");
 			this.elems.layers.appendChild(elem);
 		}
 	}
+	// update existing buttons
 	// TODO: remove old layers
-
 	// TODO: sort layer elements
+	children = this.elems.layers.children;
+	for (var i = 0; i < children.length; i++) {
+		var elem = children[i],
+			user = this.users[children[i].getAttribute('user')];
+		if (user.avatar && urlExists(user.avatar)) {
+			elem.style.backgroundImage = 'url(' + user.avatar + ')';
+			elem.innerHTML = '';
+		} else {
+			elem.style.backgroundImage = null;
+			elem.innerHTML = user.initials;
+		}
+	};
 };
 
 IOSketch.prototype.setLayerActiveCallback = function(e, activate) {
@@ -564,65 +591,91 @@ IOSketch.prototype.saveSVG = function() {
 // users and layers up to date, etc
 
 function IOSketchSocket(sketch, address, room) {
+	var self = this;
 	this.sketch = sketch;
 	this.address = address;
 	this.room = room;
 
+	// TEMP
+	$('#serverAddress').html(address);
+	$('#roomId').html(room);
+	var statusIcon = $('#statusBar');
+
 	console.log('connecting to ' + address);
-	socket = io.connect(address);
+	var socket = io.connect(address);
 
 	// basic connection events
 
 	socket.on('connecting', function() {
-		$('#status').attr('state', 'connecting');
+		statusIcon.attr('state', 'connecting');
 	});
 
 	socket.on('connect', function() {
-		$('#status').attr('state', 'connected');
-		socket.emit('joinRoom', {id: room});
+		statusIcon.attr('state', 'connected');
+
+		socket.emit('login', {
+			user: self.sketch.activeUser.simplified()
+		});
+
+		if (self.room) {
+			socket.emit('join_room', {
+				room: self.room
+			});
+		}
 	});
 
 	socket.on('connect_failed', function() {
-		$('#status').attr('state', 'disconnected');
+		statusIcon.attr('state', 'disconnected');
 	});
 
 	socket.on('disconnect', function() {
-		$('#status').attr('state', 'disconnected');
+		statusIcon.attr('state', 'disconnected');
 	});
 
 
 	// users and room management
 
-	socket.on('users_in_room', function() {
-		console.log('');
+	socket.on('join_room_failed', function(data) {
+		console.log('join_room_failed', data);
 	});
 
-	socket.on('user_joined', function() {
+	socket.on('user_info', function(data) {
+		console.log('user info', data.user);
+		// update user info for the given user,
+		// should be the active user
+		var user = self.sketch.users[data.user.username];
+		if (user) {
+			for (var key in data.user) {
+				user[key] = data.user[key];
+			}
+			self.sketch.updateLayerButtons();
+		}
 	});
 
-	socket.on('users', this.io_updateUsers.bind(this));
-	socket.on('action', this.io_action.bind(this));
+	socket.on('user_joined', function(data) {
+		console.log('user joined', data);
+	});
+
+	socket.on('user_left', function(data) {
+		console.log('user left', data);
+	});
+
+	socket.on('users_in_room', function(data) {
+		console.log('received list of users', data);
+	});
+
+	socket.on('action', this.parseAction.bind(this));
 
 	this.socket = socket;
 }
 
-IOSketchSocket.prototype.disconnect = function() {
-	this.socket.disconnect();
-};
-
-IOSketchSocket.prototype.loadUsers = function() {
-	console.log('users', data);
-};
-
-IOSketchSocket.prototype.io_action = function(data) {
+IOSketchSocket.prototype.parseAction = function(data) {
 	if (data.type == 'add') {
-		this.io_addObject(data);
+		this.sketch.addObject(data);
 	} else if (data.type == 'remove') {
-		this.io_removeObject(data);
+		this.sketch.removeObject(data);
 	}
-	paper.project.view.update();
 };
-
 
 
 
