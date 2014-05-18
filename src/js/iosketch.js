@@ -48,7 +48,11 @@ function hasFillColor(item, color) {
 function urlExists(url) {
 	var http = new XMLHttpRequest();
 	http.open('HEAD', url, false);
-	http.send();
+	try {
+		http.send();
+	} catch (e) {
+		return false;
+	}
 	return http.status != 404;
 }
 
