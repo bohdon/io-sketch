@@ -10,28 +10,32 @@ var gravatar = require('gravatar');
 
 io.sockets.on('connection', function (socket) {
 
-	socket.leave_room = function() {
-		socket.broadcast.to(this.room).emit('user_left', {
-			user: this.user
-		});
-		socket.leave(this.room);
-		delete socket.room;
-	};
+	socket.user = {};
 
 	socket.on('login', function(data) {
+		if (!data.user.username) {
+			return socket.emit('login_failed', function(data) {err:'no username'});
+		}
 		socket.user = data.user;
 		if (data.user.email) {
 			// update user info
-			socket.user.avatar = gravatar.url(data.user.email, {s: '30', r: 'x', d: 'retro'});
+			socket.user.avatar = gravatar.url(data.user.email, {s: '60', r: 'x', d: '404'});
 			socket.emit('user_info', {
 				user: socket.user
 			});
 		}
+		console.log('user logged in: %s', socket.user.username);
 	});
 
 	socket.on('join_room', function(data) {
-		if (this.room) {
-			this.leave_room();
+		if (!socket.user) {
+			return socket.emit('join_room_failed', {err:'not logged in'});
+		}
+		if (!data.room) {
+			return socket.emit('join_room_failed', {err:'no room specified'});
+		}
+		if (socket.room) {
+			socket.leave_room();
 		}
 		// TODO: validate that user is allowed to join room
 		socket.room = data.room;
@@ -45,31 +49,41 @@ io.sockets.on('connection', function (socket) {
 		socket.join(data.room);
 
 		// send all current users in room
-		var users = chat.clients(data.room).map(function(c) {return c.user;});
+		var users = io.sockets.clients(data.room).map(function(c) {return c.user;});
 		socket.emit('users_in_room', {
 			users: users
 		});
 		// TODO: send full state of drawing for this room
+		console.log("%s joined room %s", socket.user.username, data.room);
 	});
 
 	socket.on('leave_room', function() {
-		if (this.room) {
-			this.leave_room();
+		if (socket.room) {
+			socket.leave_room();
 		}
 	});
 
 	socket.on('disconnect', function() {
-		if (this.room) {
-			this.leave_room();
+		if (socket.room) {
+			socket.leave_room();
 		}
 	});
 
 	socket.on('action', function(data) {
 		// send action to all other clients in room
-		if (this.room) {
-			socket.broadcast.to(this.room).emit('action', data);
+		if (socket.room) {
+			socket.broadcast.to(socket.room).emit('action', data);
 		}
 	});
+
+	socket.leave_room = function() {
+		socket.broadcast.to(socket.room).emit('user_left', {
+			user: socket.user
+		});
+		socket.leave(socket.room);
+		console.log("%s left room %s", socket.user.username, socket.room);
+		delete socket.room;
+	};
 
 });
 
