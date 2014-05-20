@@ -60,6 +60,7 @@ body {
 		background-color: white;
 		margin: auto;
 		position: relative;
+		cursor: crosshair;
 	}
 
 	#statusBar {
@@ -79,6 +80,15 @@ body {
 			margin: 1px;
 			margin-left: 4px;
 			border-radius: 10px;
+		}
+
+		#roomId {
+			&[state='disconnected'] {
+				color: #f20;
+			}
+			&[state='connected'] {
+				color: $status-green;
+			}
 		}
 
 		&[state='disconnected'] {

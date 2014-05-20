@@ -193,8 +193,6 @@ IOSketch.prototype.addUser = function(user) {
 	if (!u.initials && u.fullname) {
 		u.initials = getInitials(u.fullname);
 	}
-	// set user to online
-	u.online = true;
 	// update display
 	this.updateLayerButtons();
 };
@@ -204,18 +202,33 @@ IOSketch.prototype.removeUser = function(user, clear) {
 		// if layer is empty, fully delete the user regardless of clear flag
 		var user = this.users[user.username];
 		if (user.layer.isEmpty()) {
-			// clear = true;
+			clear = true;
 		}
-
-		if (clear) {
-			console.log("DELETE USER", user);
+		if (clear && user.username != this.activeUsername) {
+			// delete user
+			user.layer.remove();
+			delete this.users[user.username];
+			this.updateLayerButtons();
 		} else {
 			// just set user status to not-online
-			user.online = false;
+			this.setUserOnline(user, false);
 		}
-		this.updateLayerButtons();
 	}
 };
+
+IOSketch.prototype.setUserOnline = function(user, online) {
+	if (online === undefined) {
+		online = true;
+	}
+	var u = this.users[user.username];
+	if (u) {
+		u.online = online;
+		var elem = this.elems.layers.children('[user='+user.username+']');
+		if (elem) {
+			elem.attr('online', u.online);
+		}
+	}
+}
 
 IOSketch.prototype.getOrCreateUserLayer = function(username) {
 	this.activate();
@@ -275,45 +288,49 @@ IOSketch.prototype.updateActiveLayer = function() {
 
 
 IOSketch.prototype.updateLayerButtons = function() {
+	var self = this;
+	// remove old layers
+	var children = self.elems.layers.children('.layerButton');
+	children.each(function(i, el) {
+		var username = $(this).attr('user');
+		if (!(username in self.users)) {
+			$(this).remove();
+		}
+	});
+	// get existing element usernames
+	var child_ids = children.map(function(i, el) {return $(this).attr('user');}).get();
 	// append any new layers
-	var children = this.elems.layers.children;
-	var child_ids = [];
-	for (var i = 0; i < children.length; i++) {
-		child_ids.push(children[i].getAttribute('user'));
-	}
-	for (var username in this.users) {
-		var user = this.users[username];
+	for (var username in self.users) {
+		var user = self.users[username];
 		if (child_ids.indexOf(username) < 0) {
 			// add new child element
 			var elem = document.createElement('div');
-			elem.addEventListener('click', this.setLayerActiveCallback.bind(this));
-			elem.addEventListener('mouseover', this.setLayerHilitedCallback.bind(this, true));
-			elem.addEventListener('mouseout', this.setLayerHilitedCallback.bind(this, false));
+			elem.addEventListener('click', self.setLayerActiveCallback.bind(self));
+			elem.addEventListener('mouseover', self.setLayerHilitedCallback.bind(self, true));
+			elem.addEventListener('mouseout', self.setLayerHilitedCallback.bind(self, false));
 			$(elem).attr({
 				user: username,
 			}).addClass("box button active layerButton");
-			this.elems.layers.appendChild(elem);
+			self.elems.layers.append(elem);
 		}
 	}
-	// update existing buttons
-	// TODO: remove old layers
-	// TODO: sort layer elements
-	children = this.elems.layers.children;
-	for (var i = 0; i < children.length; i++) {
-		var elem = children[i],
-			user = this.users[children[i].getAttribute('user')];
-		$(elem).attr('online', user.online);
+	// update display of buttons
+	children = self.elems.layers.children('.layerButton');
+	children.each(function(i, c) {
+		var elem = $(this),
+			user = self.users[elem.attr('user')];
 		if (user.avatar && urlExists(user.avatar)) {
 			var url = 'url(' + user.avatar + ')';
-			if (elem.style.backgroundImage != url) {
-				elem.style.backgroundImage = url;
+			if (elem.css('background-image') != url) {
+				elem.css({'background-image': url});
 			}
-			elem.innerHTML = '';
+			elem.html('');
 		} else {
-			elem.style.backgroundImage = null;
-			elem.innerHTML = user.initials;
+			elem.css({'background-image': null});
+			elem.html(user.initials);
 		}
-	};
+	});
+	// TODO: sort layer elements
 };
 
 IOSketch.prototype.setLayerActiveCallback = function(e, activate) {
@@ -634,7 +651,7 @@ function IOSketchSocket(sketch, address, room) {
 
 	// TEMP
 	$('#serverAddress').html(address);
-	$('#roomId').html(room);
+	$('#roomId').html(room).attr('state', 'disconnected');
 	var statusIcon = $('#statusBar');
 
 	var socket = io.connect(address);
@@ -664,16 +681,14 @@ function IOSketchSocket(sketch, address, room) {
 	socket.on('disconnect', function() {
 		statusIcon.attr('state', 'disconnected');
 		for (var i = 0; i < self.sketch.users.length; i++) {
-			self.sketch.users[i].online = false;
+			self.sketch.setUserOnline(self.sketch.users[i].username, false);
 		};
-		self.sketch.updateLayerButtons();
 	});
 
 
 	// users and room management
 
 	socket.on('login', function(data) {
-		self.sketch.activeUser.online = true;
 		self.sketch.updateLayerButtons();
 	});
 
@@ -685,29 +700,26 @@ function IOSketchSocket(sketch, address, room) {
 		alert('failed to join room: ' + data.err);
 	});
 
-	socket.on('user_info', function(data) {
-		// update user info for the given user,
-		// should be the active user
-		var user = self.sketch.users[data.user.username];
-		if (user) {
-			for (var key in data.user) {
-				user[key] = data.user[key];
-			}
-			self.sketch.updateLayerButtons();
-		}
-	});
-
 	socket.on('user_joined', function(data) {
 		self.sketch.addUser(data.user);
+		self.sketch.setUserOnline(data.user);
+		if (data.user.username == self.sketch.activeUsername) {
+			$('#roomId').attr('state', 'connected');
+		}
 	});
 
 	socket.on('user_left', function(data) {
 		self.sketch.removeUser(data.user, false);
+		self.sketch.setUserOnline(data.user, false);
+		if (data.user.username == self.sketch.activeUsername) {
+			$('#roomId').attr('state', 'disconnected');
+		}
 	});
 
 	socket.on('users_in_room', function(data) {
 		for (var i = 0; i < data.users.length; i++) {
 			self.sketch.addUser(data.users[i]);
+			self.sketch.setUserOnline(data.users[i]);
 		};
 	});
 
@@ -836,7 +848,7 @@ PaintBrush.prototype.onMouseDown = function(event) {
 		this.sketch.pickColor(event.point);
 	} else if (event.modifiers.shift) {
 		// hit test for apply color
-		var hitResult = paper.project.hitTest(event.point, {fill: true});
+		var hitResult = paper.project.activeLayer.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// apply color
 			if (hitResult.item.parent.className != 'Layer') {
@@ -984,7 +996,7 @@ FillBrush.prototype.onMouseDown = function(event) {
 		this.sketch.pickColor(event.point);
 	} else if (event.modifiers.shift) {
 		// hit test for apply color
-		var hitResult = paper.project.hitTest(event.point, {fill: true});
+		var hitResult = paper.project.activeLayer.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// apply color
 			if (hitResult.item.parent.className != 'Layer') {
@@ -1108,7 +1120,7 @@ EraserBrush.prototype.onMouseDown = function(event) {
 		this.sketch.pickColor(event.point);
 	} else {
 		// hit test for erase
-		var hitResult = paper.project.hitTest(event.point, {fill: true});
+		var hitResult = paper.project.activeLayer.hitTest(event.point, {fill: true});
 		if (hitResult) {
 			// erase
 			if (this.eraseType != 'color' || hasFillColor(hitResult.item, this.sketch.activeColor)) {

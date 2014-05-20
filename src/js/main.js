@@ -4,7 +4,7 @@ $(document).ready(function() {
 
 	var elems = {
 		canvas: $('#canvas')[0],
-		layers: $('#layers')[0],
+		layers: $('#layers'),
 		colorSwatches: $('#brushColors')[0],
 		paintToolButton: $('#paintToolButton')[0],
 		brushSize: $('#brushSize')[0],
@@ -20,8 +20,6 @@ $(document).ready(function() {
 		room = process.env.SKETCH_ROOM || 'mainRoom';
 	var sketchsocket = new iosketch.IOSketchSocket(mysketch, server, room);
 
-	console.log(process.env.SKETCH_USER);
-	console.log(process.env.SKETCH_USER || process.env.USER);
 	var thisUser = {
 		username: process.env.SKETCH_USER || process.env.USER,
 		fullname: process.env.SKETCH_NAME,

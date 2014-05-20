@@ -86,6 +86,7 @@ body {
         justify-content: flex-start;
         left: 40%; } }
   .iosketch .button, .iosketch .button-small {
+    cursor: default;
     background-color: white;
     text-align: center;
     opacity: 0.25;
@@ -201,7 +202,8 @@ body {
   .iosketch canvas {
     background-color: white;
     margin: auto;
-    position: relative; }
+    position: relative;
+    cursor: crosshair; }
   .iosketch #statusBar {
     position: relative;
     top: 46px;
@@ -216,6 +218,10 @@ body {
       margin: 1px;
       margin-left: 4px;
       border-radius: 10px; }
+    .iosketch #statusBar #roomId[state='disconnected'] {
+      color: #f20; }
+    .iosketch #statusBar #roomId[state='connected'] {
+      color: #7fc543; }
     .iosketch #statusBar[state='disconnected'] {
       color: #f20; }
       .iosketch #statusBar[state='disconnected'] #statusIcon {
