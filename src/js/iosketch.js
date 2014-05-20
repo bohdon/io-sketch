@@ -308,9 +308,7 @@ IOSketch.prototype.updateLayerButtons = function() {
 			elem.addEventListener('click', self.setLayerActiveCallback.bind(self));
 			elem.addEventListener('mouseover', self.setLayerHilitedCallback.bind(self, true));
 			elem.addEventListener('mouseout', self.setLayerHilitedCallback.bind(self, false));
-			$(elem).attr({
-				user: username,
-			}).addClass("box button active layerButton");
+			$(elem).addClass("box button active layerButton").attr('user', username);
 			self.elems.layers.append(elem);
 		}
 	}
@@ -319,6 +317,7 @@ IOSketch.prototype.updateLayerButtons = function() {
 	children.each(function(i, c) {
 		var elem = $(this),
 			user = self.users[elem.attr('user')];
+		elem.attr('title', user.fullname + ' (' + user.username + ')');
 		if (user.avatar && urlExists(user.avatar)) {
 			var url = 'url(' + user.avatar + ')';
 			if (elem.css('background-image') != url) {
