@@ -400,10 +400,11 @@ IOSketch.prototype.setupCanvas = function() {
 			var image = document.createElement('img');
 			image.onload = function() {
 				self.activate();
-				raster = new paper.Raster(image);
+				var raster = new paper.Raster(image);
 				raster.fitBounds(paper.project.view.bounds);
 				paper.project.activeLayer.insertChild(0, raster);
 				paper.project.view.update();
+				self.io_send_addObject(raster);
 			};
 			image.src = event.target.result;
 		};
