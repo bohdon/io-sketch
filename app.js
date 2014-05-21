@@ -39,6 +39,7 @@ io.sockets.on('connection', function (socket) {
 
 		// join the room
 		socket.join(data.room);
+		console.log("%s joined room %s", socket.user.username, data.room);
 
 		// sent to all users in room
 		io.sockets.to(data.room).emit('user_joined', {
@@ -46,12 +47,21 @@ io.sockets.on('connection', function (socket) {
 		});
 
 		// send all current users in room
-		var users = io.sockets.clients(data.room).map(function(c) {return c.user;});
+		var allSockets = io.sockets.clients(data.room),
+			users = allSockets.map(function(c) {return c.user;});
+
 		socket.emit('users_in_room', {
 			users: users
 		});
-		// TODO: send full state of drawing for this room
-		console.log("%s joined room %s", socket.user.username, data.room);
+		
+
+		// send full state of the sketch
+		if (allSockets.length > 1) {
+			// request sending of state to the target user
+			allSockets[0].emit('send_state', {
+				user: socket.user
+			});
+		}
 	});
 
 	socket.on('leave_room', function() {
@@ -73,6 +83,16 @@ io.sockets.on('connection', function (socket) {
 		}
 	});
 
+	socket.on('send_state', function(data) {
+		// forward the state to the correct user
+		var allSockets = io.sockets.clients(socket.room);
+		for (var i = 0; i < allSockets.length; i++) {
+			if (allSockets[i].user.username == data.user.username) {
+				allSockets[i].emit('load_state', data);
+			}
+		}
+	});
+
 	socket.leave_room = function() {
 		// send to all users in room
 		io.sockets.to(socket.room).emit('user_left', {
@@ -81,8 +101,8 @@ io.sockets.on('connection', function (socket) {
 
 		// leave room
 		socket.leave(socket.room);
-
 		console.log("%s left room %s", socket.user.username, socket.room);
+
 		delete socket.room;
 	};
 
