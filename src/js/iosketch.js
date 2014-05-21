@@ -132,29 +132,8 @@ IOSketch.prototype.removeObject = function(data) {
 	paper.project.view.update();
 };
 
-IOSketch.prototype.io_send_addObject = function(obj) {
-	if (this.socket) {
-		this.socket.emit('action', {
-			type: 'add',
-			username: this.activeUsername,
-			index: obj.index,
-			obj: obj.toJSON()
-		});
-	}
-};
-
-IOSketch.prototype.io_send_removeObject = function(obj) {
-	if (this.socket) {
-		this.socket.emit('action', {
-			type: 'remove',
-			username: this.activeUsername,
-			index: obj.index,
-		});
-	}
-};
-
 IOSketch.prototype.remove = function(obj) {
-	this.io_send_removeObject(obj);
+	this.emit('item removed', obj);
 	obj.remove();
 };
 
@@ -404,7 +383,7 @@ IOSketch.prototype.setupCanvas = function() {
 				raster.fitBounds(paper.project.view.bounds);
 				paper.project.activeLayer.insertChild(0, raster);
 				paper.project.view.update();
-				self.io_send_addObject(raster);
+				self.emit('item created', raster);
 			};
 			image.src = event.target.result;
 		};
@@ -688,10 +667,6 @@ function IOSketchSocket(sketch, address, room) {
 
 	// users and room management
 
-	socket.on('login', function(data) {
-		self.sketch.updateLayerButtons();
-	});
-
 	socket.on('login_failed', function(data) {
 		alert('failed to login: ' + data.err);
 	});
@@ -723,17 +698,68 @@ function IOSketchSocket(sketch, address, room) {
 		};
 	});
 
-	socket.on('action', this.parseAction.bind(self));
+	socket.on('send_state', this.sendState.bind(this));
+	socket.on('load_state', this.loadState.bind(this));
+	socket.on('action', this.parseAction.bind(this));
 
 	this.socket = socket;
 	sketch.socket = socket;
+
+	this.sketch.on('item created', this.sendCreateItem.bind(this));
+	this.sketch.on('item removed', this.sendRemoveItem.bind(this));
 }
+
+IOSketchSocket.prototype.sendState = function(data) {
+	// return action objects for every object in the sketch
+	this.sketch.activate();
+	data.state = [];
+	for (var i = 0; i < paper.project.layers.length; i++) {
+		var children = paper.project.layers[i].children;
+		for (var j = 0; j < children.length; j++) {
+			data.state.push(this.getObjectAction(children[j], 'add'));
+		}
+	}
+	this.socket.emit('send_state', data);
+};
+
+IOSketchSocket.prototype.loadState = function(data) {
+	for (var i = 0; i < data.state.length; i++) {
+		this.parseAction(data.state[i]);
+	};
+};
 
 IOSketchSocket.prototype.parseAction = function(data) {
 	if (data.type == 'add') {
 		this.sketch.addObject(data);
 	} else if (data.type == 'remove') {
 		this.sketch.removeObject(data);
+	}
+};
+
+
+IOSketchSocket.prototype.getObjectAction = function(obj, type) {
+	var action = {
+		type: type,
+		username: this.sketch.activeUsername,
+	};
+	if (type == 'add') {
+		action.index = obj.index;
+		action.obj = obj.toJSON();
+	} else if (type == 'remove') {
+		action.index = obj.index;
+	}
+	return action;
+};
+
+IOSketchSocket.prototype.sendCreateItem = function(obj) {
+	if (this.socket) {
+		this.socket.emit('action', this.getObjectAction(obj, 'add'));
+	}
+};
+
+IOSketchSocket.prototype.sendRemoveItem = function(obj) {
+	if (this.socket) {
+		this.socket.emit('action', this.getObjectAction(obj, 'remove'));
 	}
 };
 
@@ -936,7 +962,7 @@ PaintBrush.prototype.onMouseUp = function(event) {
 	this.closePath(event);
 	if (this.pathGroup) {
 		// send path group
-		this.sketch.io_send_addObject(this.pathGroup);
+		this.sketch.emit('item created', this.pathGroup);
 		this.pathGroup = null;
 	}
 	if (this.pathCore) {
@@ -1047,7 +1073,7 @@ FillBrush.prototype.onMouseUp = function(event) {
 		this.path.closed = true;
 		this.path.smooth();
 		this.path.simplify();
-		this.sketch.io_send_addObject(this.path);
+		this.sketch.emit('item created', this.path);
 		this.path = null;
 	}
 };
